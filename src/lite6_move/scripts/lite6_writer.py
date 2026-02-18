@@ -2,114 +2,123 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from moveit_msgs.srv import GetCartesianPath
+from moveit_msgs.action import ExecuteTrajectory
+from geometry_msgs.msg import Pose
 
-from moveit_msgs.action import MoveGroup
-from moveit_msgs.msg import (
-    MotionPlanRequest, 
-    PlanningOptions, 
-    Constraints, 
-    PositionConstraint, 
-    BoundingVolume
-)
-from geometry_msgs.msg import PoseStamped, Point
-from shape_msgs.msg import SolidPrimitive
-
-class LiteWriter(Node):
-
+class MarkerWriter(Node):
     def __init__(self):
-        super().__init__('lite6Writer')
+        super().__init__('marker_writer')
         
-        self._action_client = ActionClient(self, MoveGroup, 'move_action')
-        self.goal_sent = False # Prevent spamming the action server
-
-        # Trigger the movement sequence once after 1 second
-        self.timer = self.create_timer(1.0, self.send_movement_goal)
-
-    def create_target_constraint(self, frame_id, link_name, x, y, z, tolerance=0.01):
-        """Helper function to hide the verbose bounding volume logic."""
-        pos_constraint = PositionConstraint()
-        pos_constraint.link_name = link_name
-        pos_constraint.header.frame_id = frame_id
-        pos_constraint.weight = 1.0
-
-        # Define the tolerance sphere
-        tolerance_volume = BoundingVolume()
-        primitive = SolidPrimitive(type=SolidPrimitive.SPHERE, dimensions=[tolerance])
-        tolerance_volume.primitives.append(primitive)
+        # Connect to the Cartesian Path Service (IK Calculator)
+        self.cartesian_client = self.create_client(GetCartesianPath, 'compute_cartesian_path')
         
-        # Place the sphere at your target X, Y, Z
-        pose = PoseStamped()
-        pose.header.frame_id = frame_id
-        pose.pose.position = Point(x=x, y=y, z=z)
-        tolerance_volume.primitive_poses.append(pose.pose)
+        # Connect to the Execution Action (Motor Driver)
+        self.execute_client = ActionClient(self, ExecuteTrajectory, 'execute_trajectory')
         
-        pos_constraint.constraint_region = tolerance_volume
-        
-        # Package into standard Constraints message
-        constraint = Constraints()
-        constraint.position_constraints.append(pos_constraint)
-        return constraint
+        self.timer = self.create_timer(1.0, self.draw_line)
+        self.started = False
 
-    def send_movement_goal(self):
-        # Stop the timer from firing again
-        if self.goal_sent:
+    def slow_down_trajectory(self, trajectory, speed_scale=0.3):
+        """
+        Mathematically slows down a calculated trajectory.
+        speed_scale=0.1 means it will move at 10% of the originally planned speed.
+        """
+        for point in trajectory.joint_trajectory.points:
+            time_in_seconds = point.time_from_start.sec + (point.time_from_start.nanosec * 1e-9)
+            new_time = time_in_seconds / speed_scale
+            
+            point.time_from_start.sec = int(new_time)
+            point.time_from_start.nanosec = int((new_time - int(new_time)) * 1e9)
+            
+            if point.velocities:
+                point.velocities = [v * speed_scale for v in point.velocities]
+                
+            if point.accelerations:
+                point.accelerations = [a * (speed_scale ** 2) for a in point.accelerations]
+                
+        return trajectory
+
+    def draw_line(self):
+        if self.started:
             return
-        self.goal_sent = True
+        self.started = True
 
-        goal_msg = MoveGroup.Goal()
-        
-        # 1. Setup Motion Plan Request
-        req = MotionPlanRequest()
+        self.get_logger().info("Connecting to MoveIt Cartesian Service...")
+        self.cartesian_client.wait_for_service()
+
+        req = GetCartesianPath.Request()
+        req.header.frame_id = "link_base"
         req.group_name = "lite6"
-        req.num_planning_attempts = 10
-        req.allowed_planning_time = 5.0
-        req.max_velocity_scaling_factor = 0.5
-        req.max_acceleration_scaling_factor = 0.5
+        req.max_step = 0.01       # Calculate a point every 1 cm
+        req.jump_threshold = 0.0  
         
-        # 2. Add our simplified constraint
-        target_constraint = self.create_target_constraint(
-            frame_id="link_base", 
-            link_name="link_eef", 
-            x=-0.20485, 
-            y=-0.13699, 
-            z=0.35956, 
-            tolerance=0.01 # 1cm tolerance
-        )
-        req.goal_constraints.append(target_constraint)
-        goal_msg.request = req
+        req.start_state.is_diff = True 
+        req.avoid_collisions = False
 
-        # 3. Setup Planning Options
-        goal_msg.planning_options = PlanningOptions(plan_only=False)
-
-        # 4. Send Goal
-        self.get_logger().info('Waiting for /move_action server...')
-        self._action_client.wait_for_server()
-
-        self.get_logger().info('Sending goal to move...')
-        self._send_goal_future = self._action_client.send_goal_async(goal_msg)
-        self._send_goal_future.add_done_callback(self.goal_response_callback)
-
-    def goal_response_callback(self, future):
-        goal_handle = future.result()
-        if not goal_handle.accepted:
-            self.get_logger().error('Goal rejected by MoveIt.')
+        # --- YOUR 3D COORDINATE ARRAYS ---
+        # Note: All three arrays MUST have the exact same number of items.
+        self.x_array = [0.0, 0.05, 0.05, 0.15, 0.15, 0.05]
+        self.y_array = [-0.16006, -0.17,   -0.18,   -0.19,   -0.20,   -0.25]
+        self.z_array = [0.33887,  0.2, 0.15, 0.2, 0.15, 0.2]
+        
+        # Safety check to prevent array index crashes
+        if not (len(self.x_array) == len(self.y_array) == len(self.z_array)):
+            self.get_logger().error("Your X, Y, and Z arrays must be the exact same length!")
+            rclpy.shutdown()
             return
-        self.get_logger().info('Goal accepted! Planning and moving...')
-        self._get_result_future = goal_handle.get_result_async()
-        self._get_result_future.add_done_callback(self.get_result_callback)
 
-    def get_result_callback(self, future):
-        result = future.result().result
-        self.get_logger().info(f'Finished moving. MoveIt Error Code: {result.error_code.val}')
-        rclpy.shutdown()
+        # The horizontal orientation
+        qx, qy, qz, qw = 0.0, 1.0, 0.0, 0.0
+
+        # Zip pairs up the 1st items, then 2nd items, then 3rd items...
+        for x, y, z in zip(self.x_array, self.y_array, self.z_array):
+            waypoint = Pose()
+            waypoint.position.x = float(x)
+            waypoint.position.y = float(y)
+            waypoint.position.z = float(z)
+            waypoint.orientation.x = qx
+            waypoint.orientation.y = qy
+            waypoint.orientation.z = qz
+            waypoint.orientation.w = qw
+            req.waypoints.append(waypoint)
+
+        self.get_logger().info(f"Calculating straight-line IK for {len(self.y_array)} waypoints...")
+        future = self.cartesian_client.call_async(req)
+        future.add_done_callback(self.on_path_calculated)
+
+    def on_path_calculated(self, future):
+        response = future.result()
+        fraction_pct = response.fraction * 100.0
         
+        if response.fraction < 0.95:
+            self.get_logger().error(f"IK Failed! Only calculated {fraction_pct:.1f}% of the line.")
+            rclpy.shutdown()
+            return
+            
+        self.get_logger().info(f"IK Success ({fraction_pct:.1f}%). Slowing down and executing...")
+        
+        # Slowing down to 10% speed
+        slow_trajectory = self.slow_down_trajectory(response.solution, speed_scale=0.1)
+        
+        goal_msg = ExecuteTrajectory.Goal()
+        goal_msg.trajectory = slow_trajectory
+        
+        self.execute_client.wait_for_server()
+        exec_future = self.execute_client.send_goal_async(goal_msg)
+        exec_future.add_done_callback(self.on_execution_finished)
+
+    def on_execution_finished(self, future):
+        self.get_logger().info("Finished drawing the path!")
+        rclpy.shutdown()
+
 def main(args=None):
     rclpy.init(args=args)
-    node = LiteWriter()
+    node = MarkerWriter()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
 
 if __name__ == '__main__':
-    main()``
+    main()
