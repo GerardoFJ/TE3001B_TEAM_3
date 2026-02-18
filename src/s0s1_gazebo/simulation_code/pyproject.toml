@@ -1,0 +1,20 @@
+[project]
+name = "so101-simulation"
+version = "0.1.0"
+description = "SO101 MuJoCo simulation and control stack"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "mujoco>=3.1.0",
+    "numpy",
+    "scipy",
+    "pandas",
+    "matplotlib",
+    "dash",
+    "plotly",
+]
+
+# we are NOT building a wheel, just running scripts
+[tool.uv]
+package = false
