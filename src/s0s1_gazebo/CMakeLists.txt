@@ -17,7 +17,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 
 #Install directories
-install(DIRECTORY launch config
+install(DIRECTORY launch config urdf
   DESTINATION share/${PROJECT_NAME})
 
 ######################### CPP #########################
