@@ -1,2 +1,0 @@
-# TE3001B_TEAM_3
-TE3001B Team 3 Repository
