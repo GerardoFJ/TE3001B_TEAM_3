@@ -2,9 +2,14 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+
 from moveit_msgs.srv import GetCartesianPath
 from moveit_msgs.action import ExecuteTrajectory
 from geometry_msgs.msg import Pose
+
+from tf2_ros import TransformException
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
 
 class MarkerWriter(Node):
     def __init__(self):
@@ -17,7 +22,49 @@ class MarkerWriter(Node):
         self.execute_client = ActionClient(self, ExecuteTrajectory, 'execute_trajectory')
         
         self.timer = self.create_timer(1.0, self.draw_line)
+        self.timer = self.create_timer(1.0, self.get_tf)
         self.started = False
+        # self.qx, self.qy, self.qz, self.qw = 0.58684, -0.37392, 0.33679, 0.63433
+        # self.y_start = 0.0
+        # self.z_start = 0.0
+        self.qx, self.qy, self.qz, self.qw = 0.0, 0.0, 0.0, 0.0
+        self.y_start = 0.0
+        self.z_start = 0.0
+
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+            
+        
+        
+    def get_tf(self):
+        if self.y_start != 0.0:
+            return
+        try:
+            # Look up the transform from the base to the end-effector
+            t = self.tf_buffer.lookup_transform(
+                'link_base',   # Target frame (Parent)
+                'link_eef',    # Source frame (Child)
+                rclpy.time.Time()
+            )
+            
+            # Extract position and orientation
+            pos = t.transform.translation
+            rot = t.transform.rotation
+            self.y_start = pos.y
+            self.z_start = pos.z
+            self.qx = rot.x
+            self.qy = rot.y
+            self.qz = rot.z
+            self.qw = rot.w
+            # Print cleanly to the terminal
+            self.get_logger().info(
+                f"\n--- Pose of 'link_eef' relative to 'link_base' ---\n"
+                f"Position (X, Y, Z):      [{pos.x:.5f}, {pos.y:.5f}, {pos.z:.5f}]\n"
+                f"Quaternion (X, Y, Z, W): [{rot.x:.5f}, {rot.y:.5f}, {rot.z:.5f}, {rot.w:.5f}]\n"
+            )
+
+        except TransformException as ex:
+            self.get_logger().warning(f'Could not get transform: {ex}')
 
     def slow_down_trajectory(self, trajectory, speed_scale=0.3):
         """
@@ -40,7 +87,7 @@ class MarkerWriter(Node):
         return trajectory
 
     def draw_line(self):
-        if self.started:
+        if self.started or self.y_start == 0.0:
             return
         self.started = True
 
@@ -50,7 +97,7 @@ class MarkerWriter(Node):
         req = GetCartesianPath.Request()
         req.header.frame_id = "link_base"
         req.group_name = "lite6"
-        req.max_step = 0.01       # Calculate a point every 1 cm
+        req.max_step = 0.04       # Calculate a point every 1 cm
         req.jump_threshold = 0.0  
         
         req.start_state.is_diff = True 
@@ -58,32 +105,33 @@ class MarkerWriter(Node):
 
         # --- YOUR 3D COORDINATE ARRAYS ---
         # Note: All three arrays MUST have the exact same number of items.
-        self.x_array = [0.0, 0.05, 0.05, 0.15, 0.15, 0.05]
-        self.y_array = [-0.16006, -0.17,   -0.18,   -0.19,   -0.20,   -0.25]
-        self.z_array = [0.33887,  0.2, 0.15, 0.2, 0.15, 0.2]
-        
+        self.x_array = [0.112,-0.00555,-0.05249,-0.082]
+        # self.z_array = [0.2, 0.15,0.12,0.10]
         # Safety check to prevent array index crashes
-        if not (len(self.x_array) == len(self.y_array) == len(self.z_array)):
-            self.get_logger().error("Your X, Y, and Z arrays must be the exact same length!")
-            rclpy.shutdown()
-            return
+        # if not (len(self.x_array) == len(self.y_array) == len(self.z_array)):
+        #     self.get_logger().error("Your X, Y, and Z arrays must be the exact same length!")
+        #     rclpy.shutdown()
+        #     return
 
         # The horizontal orientation
-        qx, qy, qz, qw = 0.0, 1.0, 0.0, 0.0
+        
 
         # Zip pairs up the 1st items, then 2nd items, then 3rd items...
-        for x, y, z in zip(self.x_array, self.y_array, self.z_array):
+        # for x,z in zip(self.x_array,self.z_array):
+        for x in self.x_array:
             waypoint = Pose()
             waypoint.position.x = float(x)
-            waypoint.position.y = float(y)
-            waypoint.position.z = float(z)
-            waypoint.orientation.x = qx
-            waypoint.orientation.y = qy
-            waypoint.orientation.z = qz
-            waypoint.orientation.w = qw
+            waypoint.position.y = self.y_start
+            # waypoint.position.z = float(z)
+            waypoint.position.z = self.z_start
+            waypoint.orientation.x = self.qx
+            waypoint.orientation.y = self.qy
+            waypoint.orientation.z = self.qz
+            waypoint.orientation.w = self.qw
+            self.get_logger().info(f"{x} {self.y_start} {self.z_start} {self.qx} ")
             req.waypoints.append(waypoint)
 
-        self.get_logger().info(f"Calculating straight-line IK for {len(self.y_array)} waypoints...")
+        # self.get_logger().info(f"Calculating straight-line IK for {len(self.y_array)} waypoints...")
         future = self.cartesian_client.call_async(req)
         future.add_done_callback(self.on_path_calculated)
 
