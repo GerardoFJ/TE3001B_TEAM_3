@@ -17,7 +17,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 
 #Install directories
-install(DIRECTORY launch config
+install(DIRECTORY urdf
   DESTINATION share/${PROJECT_NAME})
 
 ######################### CPP #########################
@@ -41,12 +41,15 @@ install(DIRECTORY launch config
 #Python compatability
 ament_python_install_package(${PROJECT_NAME})
 
-#Install python scripts
-# install(PROGRAMS
-#   scripts/example_pkg_node.py
-#   DESTINATION lib/${PROJECT_NAME}
-# )
+# Install python scripts
+file(GLOB PYTHON_SCRIPTS scripts/*.py)
+foreach(script ${PYTHON_SCRIPTS})
+  execute_process(COMMAND chmod +x ${script})
+endforeach()
 
+install(PROGRAMS ${PYTHON_SCRIPTS}
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ######################### Testing  #########################
 ##For testing
