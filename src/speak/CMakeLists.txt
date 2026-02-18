@@ -19,16 +19,22 @@ find_package(std_msgs REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-add_executable(talker src/talker.cpp)
-ament_target_dependencies(talker rclcpp std_msgs)
+add_executable(sender src/sender.cpp)
+ament_target_dependencies(sender rclcpp std_msgs)
 
-add_executable(listener src/listener.cpp)
-ament_target_dependencies(listener rclcpp std_msgs)
+add_executable(process src/process.cpp)
+ament_target_dependencies(process rclcpp std_msgs)
 
 install(TARGETS
-  talker
-  listener
+  process
+  sender
   DESTINATION lib/${PROJECT_NAME})
+
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
