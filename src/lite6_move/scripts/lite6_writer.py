@@ -2,6 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from ament_index_python.packages import get_package_share_directory
 
 from moveit_msgs.srv import GetCartesianPath
 from moveit_msgs.action import ExecuteTrajectory
@@ -11,30 +12,50 @@ from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
+import csv
+import os
 class MarkerWriter(Node):
     def __init__(self):
         super().__init__('marker_writer')
+        draw_path = os.path.join(
+            get_package_share_directory('lite6_move'),
+            'data',
+            'team.csv'
+        )
+        self.draw_coords = self.declare_parameter('draw_coords', draw_path).value
         
         # Connect to the Cartesian Path Service (IK Calculator)
         self.cartesian_client = self.create_client(GetCartesianPath, 'compute_cartesian_path')
         
         # Connect to the Execution Action (Motor Driver)
         self.execute_client = ActionClient(self, ExecuteTrajectory, 'execute_trajectory')
-        
+         
         self.timer = self.create_timer(1.0, self.draw_line)
         self.timer = self.create_timer(1.0, self.get_tf)
+        #Initialize the variables for position and trajectory
         self.started = False
-        # self.qx, self.qy, self.qz, self.qw = 0.58684, -0.37392, 0.33679, 0.63433
-        # self.y_start = 0.0
-        # self.z_start = 0.0
         self.qx, self.qy, self.qz, self.qw = 0.0, 0.0, 0.0, 0.0
         self.y_start = 0.0
         self.z_start = 0.0
-
+        self.x_start = 0.0
         self.tf_buffer = Buffer()
+        self.x_array = []
+        self.y_array = []
+        self.z_array = []
+        #Start the TF listener
         self.tf_listener = TransformListener(self.tf_buffer, self)
             
-        
+    def update_coords(self):
+        #Import coordinates on csv
+        with open(self.draw_coords, newline='') as csvfile:
+            rows = csv.reader(csvfile)
+            next(rows, None) 
+            for row in rows:
+                #Save coordinates 
+                self.x_array.append(float(row[0])+self.x_start)
+                self.y_array.append(float(row[1])+self.z_start)
+                self.z_array.append(float(row[2]))
+                
         
     def get_tf(self):
         if self.y_start != 0.0:
@@ -50,6 +71,7 @@ class MarkerWriter(Node):
             # Extract position and orientation
             pos = t.transform.translation
             rot = t.transform.rotation
+            self.x_start = pos.x
             self.y_start = pos.y
             self.z_start = pos.z
             self.qx = rot.x
@@ -62,6 +84,7 @@ class MarkerWriter(Node):
                 f"Position (X, Y, Z):      [{pos.x:.5f}, {pos.y:.5f}, {pos.z:.5f}]\n"
                 f"Quaternion (X, Y, Z, W): [{rot.x:.5f}, {rot.y:.5f}, {rot.z:.5f}, {rot.w:.5f}]\n"
             )
+            self.update_coords()
 
         except TransformException as ex:
             self.get_logger().warning(f'Could not get transform: {ex}')
@@ -91,47 +114,36 @@ class MarkerWriter(Node):
             return
         self.started = True
 
+        print(self.y_array)
+
         self.get_logger().info("Connecting to MoveIt Cartesian Service...")
         self.cartesian_client.wait_for_service()
 
         req = GetCartesianPath.Request()
         req.header.frame_id = "link_base"
         req.group_name = "lite6"
-        req.max_step = 0.04       # Calculate a point every 1 cm
+        req.max_step = 0.01       # Calculate a point every 1 cm
         req.jump_threshold = 0.0  
         
         req.start_state.is_diff = True 
         req.avoid_collisions = False
 
-        # --- YOUR 3D COORDINATE ARRAYS ---
-        # Note: All three arrays MUST have the exact same number of items.
-        self.x_array = [0.112,-0.00555,-0.05249,-0.082]
-        # self.z_array = [0.2, 0.15,0.12,0.10]
-        # Safety check to prevent array index crashes
-        # if not (len(self.x_array) == len(self.y_array) == len(self.z_array)):
-        #     self.get_logger().error("Your X, Y, and Z arrays must be the exact same length!")
-        #     rclpy.shutdown()
-        #     return
-
-        # The horizontal orientation
         
-
-        # Zip pairs up the 1st items, then 2nd items, then 3rd items...
-        # for x,z in zip(self.x_array,self.z_array):
-        for x in self.x_array:
+        for x,z,y in zip(self.x_array, self.y_array,self.z_array):
             waypoint = Pose()
             waypoint.position.x = float(x)
-            waypoint.position.y = self.y_start
-            # waypoint.position.z = float(z)
-            waypoint.position.z = self.z_start
+            if y == 0:
+                waypoint.position.y = self.y_start - 0.05
+            else:
+                waypoint.position.y = self.y_start
+            waypoint.position.z = float(z)
             waypoint.orientation.x = self.qx
             waypoint.orientation.y = self.qy
             waypoint.orientation.z = self.qz
             waypoint.orientation.w = self.qw
-            self.get_logger().info(f"{x} {self.y_start} {self.z_start} {self.qx} ")
+            self.get_logger().info(f"{x} {z} {self.x_start} {self.z_start} ")
             req.waypoints.append(waypoint)
 
-        # self.get_logger().info(f"Calculating straight-line IK for {len(self.y_array)} waypoints...")
         future = self.cartesian_client.call_async(req)
         future.add_done_callback(self.on_path_calculated)
 

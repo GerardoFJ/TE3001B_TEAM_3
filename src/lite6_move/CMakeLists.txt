@@ -11,7 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 #Install directories
-install(DIRECTORY launch config
+install(DIRECTORY launch data
   DESTINATION share/${PROJECT_NAME})
 
 ######################### CPP #########################

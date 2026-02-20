@@ -65,7 +65,6 @@ class MujocoSim(Node):
         # self.i = 0
 
     def start_extras(self):
-        print("entre putos")
         if self.plot:
             try:
                 self.plotter = RealtimeJointPlotter(max_points=4000)
