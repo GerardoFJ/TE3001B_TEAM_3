@@ -1,39 +1,19 @@
 cmake_minimum_required(VERSION 3.8)
-project(challenges)
-
-# Default to C++14
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
+project(custom_interfaces)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
-add_executable(sender src/sender.cpp)
-ament_target_dependencies(sender rclcpp std_msgs)
-
-add_executable(process src/process.cpp)
-ament_target_dependencies(process rclcpp std_msgs)
-
-install(TARGETS
-  process
-  sender
-  DESTINATION lib/${PROJECT_NAME})
-
-
-install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/SetProcessBool.srv"
+  DEPENDENCIES std_msgs
 )
 
 if(BUILD_TESTING)
