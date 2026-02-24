@@ -11,7 +11,7 @@ class PIDController(Node):
         super().__init__('ctrl')
 
         # Declare parameters
-        self.declare_parameter('gain_Kp', 0.46)
+        self.declare_parameter('gain_Kp', 0.23)
         self.declare_parameter('gain_Ki', 9.3)
         self.declare_parameter('gain_Kd', 0.0)
         self.declare_parameter('sample_time', 0.01)
