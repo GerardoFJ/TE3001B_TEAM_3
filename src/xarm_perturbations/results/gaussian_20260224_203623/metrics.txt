@@ -1,0 +1,13 @@
+Experiment : gaussian
+Duration   : 105.7 s  (5287 samples)
+
+RMSE per axis:
+  x = 3.453 cm
+  y = 1.909 cm
+  z = 0.155 cm
+Total RMSE : 3.948 cm
+
+Max |error| per axis:
+  x = 6.378 cm
+  y = 3.358 cm
+  z = 0.255 cm

@@ -1,0 +1,13 @@
+Experiment : baseline
+Duration   : 98.0 s  (4910 samples)
+
+RMSE per axis:
+  x = 1.731 cm
+  y = 1.467 cm
+  z = 0.114 cm
+Total RMSE : 2.272 cm
+
+Max |error| per axis:
+  x = 2.817 cm
+  y = 2.293 cm
+  z = 0.205 cm

@@ -1,0 +1,13 @@
+Experiment : sine
+Duration   : 135.2 s  (6773 samples)
+
+RMSE per axis:
+  x = 1.227 cm
+  y = 1.202 cm
+  z = 0.055 cm
+Total RMSE : 1.719 cm
+
+Max |error| per axis:
+  x = 1.939 cm
+  y = 1.793 cm
+  z = 0.109 cm
