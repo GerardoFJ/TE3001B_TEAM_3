@@ -338,7 +338,7 @@ class MasterRobot:
 
         # Velocidad de movimiento cartesiano (controlado por teclado)
         self.v_cart = np.zeros(2)
-        self.v_step = 0.05   # [m/s] por pulsación de tecla
+        self.v_step = 0.15   # [m/s] por pulsación de tecla
 
         # Red
         self.net = MasterNetClient(slave_ip)
