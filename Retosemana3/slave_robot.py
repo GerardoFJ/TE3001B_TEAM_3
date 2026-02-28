@@ -31,8 +31,8 @@ G_GRAV     = 9.81
 DT         = 0.01
 
 # Ganancias de impedancia
-KD_IMP  = 400.0                       # rigidez virtual [N/m]
-BD_IMP  = 40.0                        # amortiguamiento virtual [Ns/m]
+KD_IMP  = 150.0                       # rigidez virtual [N/m]
+BD_IMP  = 20.0                        # amortiguamiento virtual [Ns/m]
 KP_ART  = np.diag([100.0, 80.0, 60.0])
 KV_ART  = np.diag([ 20.0, 16.0, 12.0])
 
@@ -547,7 +547,7 @@ def main(master_ip):
     def animate(frame):
         n   = min(robot.idx, 500)
         i0  = robot.idx % 500
-        idx = np.arange(i0, i0 + n) % 500
+        idx = np.arange(i0 - n, i0) % 500
 
         t   = robot.hist_t[idx]
         tau = robot.hist_tau[idx]

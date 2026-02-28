@@ -356,6 +356,9 @@ class MasterRobot:
         # Estado de la pinza
         self.gripper_open = False
 
+        # Referencia cinemática inversa ( DLS )
+        self . q_des = self . q. copy ()
+
     def ik_dls(self, x_des, damp=0.01):
         """
         Cinemática inversa numérica por Damped Least Squares (DLS).
@@ -374,9 +377,6 @@ class MasterRobot:
             JJT = J @ J.T
             Jp  = J.T @ np.linalg.inv(JJT + damp**2 * np.eye(2))
             self.q_des = self.q_des + Jp @ e_x
-            # Respetar límites articulares
-            q_lim = np.array([np.pi/2, 2*np.pi/3, np.pi/2])
-            self.q_des = np.clip(self.q_des, -q_lim, q_lim)
 
     def step(self):
         """
@@ -472,17 +472,7 @@ def setup_plots(robot):
                   markersize=8, markeredgewidth=2)
     ax_robot.text(hole_x + 0.03, hole_y + 0.03, 'HOLE',
                   color='#FFD700', fontsize=8)
-    # Workspace boundary (radio máximo)
-    theta_ws = np.linspace(0, 2*np.pi, 200)
-    r_max = L1 + L2 + L3
-    ax_robot.plot(r_max*np.cos(theta_ws), r_max*np.sin(theta_ws),
-                  '--', color='#333', linewidth=1, alpha=0.4)
-
-    # Indicador de contacto
-    contact_text = ax_robot.text(0.02, 0.05, '', transform=ax_robot.transAxes,
-                                 color='#FF6B6B', fontsize=9, fontweight='bold',
-                                 verticalalignment='bottom')
-
+    
     # ── Panel 2: Torques articulares ───────────────────────
     ax_tau.set_title('Torques Articulares [Nm]', fontsize=11)
     ax_tau.set_xlabel('Tiempo [s]')
@@ -492,8 +482,6 @@ def setup_plots(robot):
     ax_tau.legend(loc='upper right', fontsize=9,
                   facecolor='#1a1a2e', labelcolor='white')
     ax_tau.axhline(y=0,    color='#444', linewidth=0.8)
-    ax_tau.axhline(y=20,   color='#FF4444', linewidth=0.8, linestyle='--', alpha=0.5)
-    ax_tau.axhline(y=-20,  color='#FF4444', linewidth=0.8, linestyle='--', alpha=0.5)
 
     # ── Panel 3: Fuerzas de contacto ───────────────────────
     ax_force.set_title('Fuerzas de Contacto Reflejadas [N]', fontsize=11)
@@ -522,7 +510,7 @@ def setup_plots(robot):
 
     return (fig,
             (ax_robot, ax_tau, ax_force, ax_q),
-            (link_line, ef_dot, contact_text),
+            (link_line, ef_dot,),
             lines_tau,
             (line_Fx, line_Fy),
             lines_q)
@@ -538,8 +526,14 @@ def main(slave_ip):
      force_lines, lines_q) = setup_plots(robot)
 
     ax_robot, ax_tau, ax_force, ax_q = axes
-    link_line, ef_dot, contact_text   = arm_artists
+    link_line, ef_dot = arm_artists
     line_Fx, line_Fy                  = force_lines
+
+    # Desactivar atajos de matplotlib que conflictan con los controles del robot
+    plt.rcParams['keymap.save']       = []   # libera 's' (move -y)
+    plt.rcParams['keymap.quit']       = []   # libera 'q' (pinza)
+    plt.rcParams['keymap.fullscreen'] = []   # libera 'f'
+    plt.rcParams['keymap.grid']       = []   # libera 'g'
 
     # ── Hilo de simulación en background ──────────────────
     running = [True]
@@ -556,7 +550,7 @@ def main(slave_ip):
     def animate(frame):
         n   = min(robot.idx, 500)
         i0  = robot.idx % 500
-        idx_range = np.arange(i0, i0 + n) % 500
+        idx_range = np.arange(i0 - n, i0) % 500
 
         t   = robot.hist_t[idx_range]
         tau = robot.hist_tau[idx_range]
@@ -567,12 +561,6 @@ def main(slave_ip):
         pts = fk_3r_full(robot.q)
         link_line.set_data(pts[:, 0], pts[:, 1])
         ef_dot.set_data([pts[-1, 0]], [pts[-1, 1]])
-
-        # Indicador de contacto háptico
-        if robot.net.contact:
-            contact_text.set_text('⚡ CONTACTO DETECTADO')
-        else:
-            contact_text.set_text('')
 
         # Ventana de tiempo visible (últimos 5 s)
         t_win = 5.0
@@ -596,8 +584,7 @@ def main(slave_ip):
         ax_q.relim()
         ax_q.autoscale_view(scalex=False)
 
-        return ([link_line, ef_dot, contact_text]
-                + lines_tau + [line_Fx, line_Fy] + lines_q)
+        return [link_line, ef_dot] + lines_tau + [line_Fx, line_Fy] + lines_q
 
     # ── Captura de teclas (movimiento cartesiano) ──────────
     def on_key_press(event):
