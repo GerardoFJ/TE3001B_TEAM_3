@@ -264,7 +264,8 @@ class TrialLogger(Node):
     def _save(self):
         ts   = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         name = f'{self.trial_name}_{ts}'
-        out_dir = os.path.expanduser('~/dev_ws/results')
+        out_dir = os.path.expanduser(
+            f'~/dev_ws/src/xarm_ros2/xarm_perturbations/results/{self.trial_name}')
         os.makedirs(out_dir, exist_ok=True)
 
         csv_path     = os.path.join(out_dir, f'{name}.csv')

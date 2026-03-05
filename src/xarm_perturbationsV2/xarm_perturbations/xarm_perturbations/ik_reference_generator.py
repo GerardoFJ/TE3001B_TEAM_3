@@ -5,22 +5,6 @@ IK Reference Generator for xArm Lite 6 (TE300XB-5 Challenge).
 Generates a smooth Cartesian waypoint trajectory and produces joint-space
 references q_des(t), qd_des(t), qdd_des(t) via weighted resolved-rate IK.
 
-Task definition
----------------
-9 waypoints (8 distinct + return to start), two Z layers (low=0.20 m,
-high=0.30 m, separation 0.10 m >= 0.08 m requirement).
-
-  WP  XYZ [m]                layer   dwell [s]
-  1   (0.30,  0.10, 0.20)    low     1.5
-  2   (0.35,  0.00, 0.20)    low     1.5
-  3   (0.30, -0.10, 0.20)    low     1.5
-  4   (0.25,  0.00, 0.20)    low     1.5
-  5   (0.25,  0.00, 0.30)    high    1.5
-  6   (0.30,  0.10, 0.30)    high    1.5
-  7   (0.35,  0.00, 0.30)    high    1.5
-  8   (0.30, -0.10, 0.30)    high    1.5
-  9   (0.30,  0.10, 0.20)    low     1.5   <- close loop (=WP1)
-
 IK method (Section 5 of the handout)
 --------------------------------------
   W  = diag(1, 1, wz)                   Z-priority weight matrix
@@ -58,21 +42,20 @@ from xarm_perturbations.xarm_kinematics import (
     position_jacobian,
 )
 
-# ---------------------------------------------------------------------------
-# Task definition — 9 waypoints in Cartesian space [m]
-# ---------------------------------------------------------------------------
+# Task definition — Pick & Place doble (8 waypoints distintos + retorno)
+
 _WAYPOINTS = np.array([
-    [0.30,  0.10, 0.20],   # WP1 low
-    [0.35,  0.00, 0.20],   # WP2 low
-    [0.30, -0.10, 0.20],   # WP3 low
-    [0.25,  0.00, 0.20],   # WP4 low
-    [0.25,  0.00, 0.30],   # WP5 high  (transition up)
-    [0.30,  0.10, 0.30],   # WP6 high
-    [0.35,  0.00, 0.30],   # WP7 high
-    [0.30, -0.10, 0.30],   # WP8 high
-    [0.30,  0.10, 0.20],   # WP9 = WP1 (close loop)
+    [0.30,  0.15, 0.30],   # WP1 alto  — aproximación sobre A
+    [0.30,  0.15, 0.20],   # WP2 bajo  — agarre en A
+    [0.30, -0.15, 0.30],   # WP3 alto  — transporte hacia B
+    [0.30, -0.15, 0.20],   # WP4 bajo  — depósito en B
+    [0.35,  0.10, 0.30],   # WP5 alto  — aproximación sobre C
+    [0.35,  0.10, 0.20],   # WP6 bajo  — agarre en C
+    [0.35, -0.10, 0.30],   # WP7 alto  — transporte hacia D
+    [0.35, -0.10, 0.20],   # WP8 bajo  — depósito en D
+    [0.30,  0.15, 0.30],   # WP9 = WP1 — retorno (cierra loop)
 ])
-_LAYERS = ['low', 'low', 'low', 'low', 'high', 'high', 'high', 'high', 'low']
+_LAYERS = ['high', 'low', 'high', 'low', 'high', 'low', 'high', 'low', 'high']
 
 
 # ---------------------------------------------------------------------------
