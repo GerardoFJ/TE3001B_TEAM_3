@@ -1,0 +1,6 @@
+[console_scripts]
+ik_reference_generator = xarm_perturbations.ik_reference_generator:main
+joint_space_controller = xarm_perturbations.joint_space_controller:main
+perturbation_injector = xarm_perturbations.perturbation_injector:main
+trial_logger = xarm_perturbations.trial_logger:main
+

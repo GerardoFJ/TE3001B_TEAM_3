@@ -1,0 +1,38 @@
+[0.000000] (-) TimerEvent: {}
+[0.000766] (xarm_perturbations) JobQueued: {'identifier': 'xarm_perturbations', 'dependencies': OrderedDict()}
+[0.001048] (xarm_perturbations) JobStarted: {'identifier': 'xarm_perturbations'}
+[0.099076] (-) TimerEvent: {}
+[0.199434] (-) TimerEvent: {}
+[0.299796] (-) TimerEvent: {}
+[0.400241] (-) TimerEvent: {}
+[0.500519] (-) TimerEvent: {}
+[0.600872] (-) TimerEvent: {}
+[0.701222] (-) TimerEvent: {}
+[0.755070] (xarm_perturbations) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/build/xarm_perturbations/build', '--no-deps', 'symlink_data'], 'cwd': '/workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/build/xarm_perturbations', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'HOSTNAME': 'macarch', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/home/ros', 'OLDPWD': '/workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/xarm_perturbations', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm-256color', 'ROS_LOCALHOST_ONLY': '0', 'QT_X11_NO_MITSHM': '1', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'QT_DEBUG_PLUGINS': '1', 'DISPLAY': ':0', 'LANG': 'en_US.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'DEBIAN_FRONTEND': 'noninteractive', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'PWD': '/workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/build/xarm_perturbations', 'PYTHONPATH': '/workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/build/xarm_perturbations/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/install/xarm_perturbations/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1'}, 'shell': False}
+[0.801364] (-) TimerEvent: {}
+[0.901695] (-) TimerEvent: {}
+[1.002031] (-) TimerEvent: {}
+[1.069912] (xarm_perturbations) StdoutLine: {'line': b'running develop\n'}
+[1.102175] (-) TimerEvent: {}
+[1.202479] (-) TimerEvent: {}
+[1.277132] (xarm_perturbations) StdoutLine: {'line': b'running egg_info\n'}
+[1.277431] (xarm_perturbations) StdoutLine: {'line': b'writing xarm_perturbations.egg-info/PKG-INFO\n'}
+[1.277657] (xarm_perturbations) StdoutLine: {'line': b'writing dependency_links to xarm_perturbations.egg-info/dependency_links.txt\n'}
+[1.277859] (xarm_perturbations) StdoutLine: {'line': b'writing entry points to xarm_perturbations.egg-info/entry_points.txt\n'}
+[1.278056] (xarm_perturbations) StdoutLine: {'line': b'writing requirements to xarm_perturbations.egg-info/requires.txt\n'}
+[1.278268] (xarm_perturbations) StdoutLine: {'line': b'writing top-level names to xarm_perturbations.egg-info/top_level.txt\n'}
+[1.280143] (xarm_perturbations) StdoutLine: {'line': b"reading manifest file 'xarm_perturbations.egg-info/SOURCES.txt'\n"}
+[1.281105] (xarm_perturbations) StdoutLine: {'line': b"writing manifest file 'xarm_perturbations.egg-info/SOURCES.txt'\n"}
+[1.282749] (xarm_perturbations) StdoutLine: {'line': b'running build_ext\n'}
+[1.283043] (xarm_perturbations) StdoutLine: {'line': b'Creating /workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/install/xarm_perturbations/lib/python3.10/site-packages/xarm-perturbations.egg-link (link to .)\n'}
+[1.283992] (xarm_perturbations) StdoutLine: {'line': b'Installing ik_reference_generator script to /workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/install/xarm_perturbations/lib/xarm_perturbations\n'}
+[1.284235] (xarm_perturbations) StdoutLine: {'line': b'Installing joint_space_controller script to /workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/install/xarm_perturbations/lib/xarm_perturbations\n'}
+[1.284509] (xarm_perturbations) StdoutLine: {'line': b'Installing perturbation_injector script to /workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/install/xarm_perturbations/lib/xarm_perturbations\n'}
+[1.284730] (xarm_perturbations) StdoutLine: {'line': b'Installing trial_logger script to /workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/install/xarm_perturbations/lib/xarm_perturbations\n'}
+[1.284932] (xarm_perturbations) StdoutLine: {'line': b'\n'}
+[1.285118] (xarm_perturbations) StdoutLine: {'line': b'Installed /workspace/TE3001B_TEAM_3/src/xarm_perturbationsV2/build/xarm_perturbations\n'}
+[1.285282] (xarm_perturbations) StdoutLine: {'line': b'running symlink_data\n'}
+[1.302585] (-) TimerEvent: {}
+[1.319109] (xarm_perturbations) CommandEnded: {'returncode': 0}
+[1.334541] (xarm_perturbations) JobEnded: {'identifier': 'xarm_perturbations', 'rc': 0}
+[1.335449] (-) EventReactorShutdown: {}

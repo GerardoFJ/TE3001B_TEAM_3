@@ -49,7 +49,7 @@ import time
 
 import numpy as np
 import rclpy
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import PointStamped, TwistStamped
 from rclpy.node import Node
 from rclpy.qos import (
     DurabilityPolicy,
@@ -124,6 +124,7 @@ class PerturbationGenerator(Node):
             durability=DurabilityPolicy.VOLATILE,
         )
         self.pub = self.create_publisher(TwistStamped, self.output_topic, self.pub_qos)
+        self.pub_perturb = self.create_publisher(PointStamped, '/controller/perturbation', 10)
 
         # ── Relay subscription ────────────────────────────────────
         if self.relay_mode:
@@ -179,8 +180,18 @@ class PerturbationGenerator(Node):
             return
 
         base = self.last_relay_v if self.relay_mode else self.base_linear
-        v = np.clip(base + self._dp(), -self.max_lin, self.max_lin)
+        dp = self._dp()
+        v = np.clip(base + dp, -self.max_lin, self.max_lin)
         self._publish(v, note="RUN")
+
+        # Publish perturbation signal for rqt_plot
+        pm = PointStamped()
+        pm.header.stamp = self.get_clock().now().to_msg()
+        pm.header.frame_id = 'link_base'
+        pm.point.x = float(dp[0])
+        pm.point.y = float(dp[1])
+        pm.point.z = float(dp[2])
+        self.pub_perturb.publish(pm)
 
     def _publish(self, v_xyz: np.ndarray, note: str = ""):
         out = TwistStamped()

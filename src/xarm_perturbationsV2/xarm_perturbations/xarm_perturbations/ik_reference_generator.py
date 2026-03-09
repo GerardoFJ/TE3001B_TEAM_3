@@ -32,30 +32,29 @@ import time
 
 import numpy as np
 import rclpy
-from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import Point, PointStamped
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
-from std_msgs.msg import Float64MultiArray, String
+from std_msgs.msg import Float64MultiArray, String, ColorRGBA
+from visualization_msgs.msg import Marker, MarkerArray
 
 from xarm_perturbations.xarm_kinematics import (
     get_eef_position,
     position_jacobian,
 )
 
-# Task definition — Pick & Place doble (8 waypoints distintos + retorno)
+# Task definition — Beer Giver (recoger cerveza y entregarla al usuario)
 
 _WAYPOINTS = np.array([
-    [0.30,  0.15, 0.30],   # WP1 alto  — aproximación sobre A
-    [0.30,  0.15, 0.20],   # WP2 bajo  — agarre en A
-    [0.30, -0.15, 0.30],   # WP3 alto  — transporte hacia B
-    [0.30, -0.15, 0.20],   # WP4 bajo  — depósito en B
-    [0.35,  0.10, 0.30],   # WP5 alto  — aproximación sobre C
-    [0.35,  0.10, 0.20],   # WP6 bajo  — agarre en C
-    [0.35, -0.10, 0.30],   # WP7 alto  — transporte hacia D
-    [0.35, -0.10, 0.20],   # WP8 bajo  — depósito en D
-    [0.30,  0.15, 0.30],   # WP9 = WP1 — retorno (cierra loop)
+    [ 0.33, -0.02, 0.10],   # WP1 home — posición de reposo elevada
+    [ 0.28,  -0.03, 0.29],   # WP2 approach — desplazarse sobre la cerveza
+    [ 0.40,  -0.03, 0.32],   # WP3 grab — bajar a agarrar la cerveza
+    [ 0.21,  -0.03, 0.31],   # WP4 lift — levantar la cerveza
+    [ 0.21,  -0.02, 0.31],   # WP5 transit — transporte hacia el usuario
+    [ 0.29, 0.03, 0.10],   # WP6 deliver — extender brazo para entregar
+    [ 0.41, -0.01, 0.10],   # WP7 hold — mantener posición (dwell largo)
 ])
-_LAYERS = ['high', 'low', 'high', 'low', 'high', 'low', 'high', 'low', 'high']
+_LAYERS = ['high', 'high', 'high', 'high', 'high', 'high', 'high']
 
 
 # ---------------------------------------------------------------------------
@@ -304,6 +303,10 @@ class IKReferenceGenerator(Node):
         self._hold_steps = 0   # filled after trajectory is computed
         self._hold_count = 0
 
+        # Convergence gating: don't leave a dwell until the arm is close enough
+        self.wp_tolerance = float(
+            self.declare_parameter('wp_tolerance', 0.015).value or 0.015)  # 15 mm
+
         # Only the Cartesian trajectory is pre-computed (joint IK is online).
         self.ts      = None
         self.p_des   = None
@@ -318,6 +321,8 @@ class IKReferenceGenerator(Node):
         self.pub_qdd  = self.create_publisher(Float64MultiArray, '/ik/qdd_des', 10)
         self.pub_p    = self.create_publisher(PointStamped,      '/ik/p_des',   10)
         self.pub_phase = self.create_publisher(String,           '/ik/phase',   10)
+        self.pub_markers = self.create_publisher(MarkerArray,    '/ik/waypoint_markers', 10)
+        self._current_wp = -1  # track active waypoint for marker highlighting
 
         # ── Subscriptions ──────────────────────────────────────────
         self.create_subscription(JointState, '/joint_states',
@@ -426,6 +431,72 @@ class IKReferenceGenerator(Node):
             f'  Holding at start for {self.start_hold_sec}s — START THE CONTROLLER NOW'
         )
 
+    # ── RViz markers ───────────────────────────────────────────────
+
+    def _publish_waypoint_markers(self, active_wp: int):
+        """Publish MarkerArray showing all waypoints and highlighting the active one."""
+        ma = MarkerArray()
+        now = self.get_clock().now().to_msg()
+
+        # --- Trajectory path (LINE_STRIP) ---
+        path_marker = Marker()
+        path_marker.header.stamp = now
+        path_marker.header.frame_id = 'link_base'
+        path_marker.ns = 'waypoint_path'
+        path_marker.id = 0
+        path_marker.type = Marker.LINE_STRIP
+        path_marker.action = Marker.ADD
+        path_marker.scale.x = 0.005  # line width
+        path_marker.color = ColorRGBA(r=0.3, g=0.7, b=1.0, a=0.6)
+        path_marker.pose.orientation.w = 1.0
+        for wp in _WAYPOINTS:
+            pt = Point(x=float(wp[0]), y=float(wp[1]), z=float(wp[2]))
+            path_marker.points.append(pt)
+        ma.markers.append(path_marker)
+
+        # --- Sphere + text for each waypoint ---
+        for i, wp in enumerate(_WAYPOINTS):
+            is_active = (active_wp == i + 1)  # wp_idx is 1-based after prepending p_robot
+
+            # Sphere marker
+            m = Marker()
+            m.header.stamp = now
+            m.header.frame_id = 'link_base'
+            m.ns = 'waypoints'
+            m.id = i
+            m.type = Marker.SPHERE
+            m.action = Marker.ADD
+            m.pose.position.x = float(wp[0])
+            m.pose.position.y = float(wp[1])
+            m.pose.position.z = float(wp[2])
+            m.pose.orientation.w = 1.0
+            if is_active:
+                m.scale.x = m.scale.y = m.scale.z = 0.04
+                m.color = ColorRGBA(r=1.0, g=1.0, b=0.0, a=1.0)  # yellow
+            else:
+                m.scale.x = m.scale.y = m.scale.z = 0.025
+                m.color = ColorRGBA(r=0.0, g=0.8, b=0.2, a=0.8)  # green
+            ma.markers.append(m)
+
+            # Text label
+            txt = Marker()
+            txt.header.stamp = now
+            txt.header.frame_id = 'link_base'
+            txt.ns = 'waypoint_labels'
+            txt.id = i
+            txt.type = Marker.TEXT_VIEW_FACING
+            txt.action = Marker.ADD
+            txt.pose.position.x = float(wp[0])
+            txt.pose.position.y = float(wp[1])
+            txt.pose.position.z = float(wp[2]) + 0.04
+            txt.pose.orientation.w = 1.0
+            txt.scale.z = 0.02
+            txt.color = ColorRGBA(r=1.0, g=1.0, b=1.0, a=0.9)
+            txt.text = f'WP{i + 1}'
+            ma.markers.append(txt)
+
+        self.pub_markers.publish(ma)
+
     # ── Playback tick ───────────────────────────────────────────────
 
     def _tick(self):
@@ -450,14 +521,10 @@ class IKReferenceGenerator(Node):
                 self.play_idx = 0
                 self._hold_count = 0
                 return
-            self.play_idx += 1
             is_holding = False
 
         # ── Online weighted resolved-rate IK ───────────────────────
         # Compute qd_des from the CURRENT robot state (q_meas).
-        # This ensures q_des = q_meas + qd_des*dt is always one step ahead
-        # of the actual robot, so the joint-space tracking error stays small
-        # regardless of deviations in the robot's Cartesian path.
         q = self.q_meas
         p = get_eef_position(q)
         J = position_jacobian(q)
@@ -477,6 +544,26 @@ class IKReferenceGenerator(Node):
             qd_k  = (J_hash @ (self.pd_des[k] + self.k_task * p_err)
                      + P_null @ (-self.k_null * (q - self.q_home)))
             qd_k  = np.clip(qd_k, -self.max_qd, self.max_qd)
+
+        # ── Convergence gating ─────────────────────────────────────
+        # If we are in a dwell phase and the NEXT step leaves the dwell
+        # (i.e. starts a new transition), check that the arm has actually
+        # reached the waypoint.  If not, freeze play_idx so the arm keeps
+        # driving toward the waypoint position instead of moving on.
+        advance = True
+        if not is_holding and self.dwell[k]:
+            next_k = k + 1
+            # About to leave this dwell?
+            leaving_dwell = (next_k >= len(self.ts)) or not self.dwell[next_k]
+            if leaving_dwell:
+                dist = float(np.linalg.norm(self.p_des[k] - p))
+                if dist > self.wp_tolerance:
+                    advance = False  # hold here until the arm converges
+                    if k % max(1, int(self.rate_hz)) == 0:
+                        self.get_logger().info(
+                            f'Waiting for convergence at WP{int(self.wp_idx[k])}: '
+                            f'dist={dist:.4f} m > tol={self.wp_tolerance:.4f} m'
+                        )
 
         # One step ahead reference
         q_des_k  = q + qd_k * self.dt
@@ -511,11 +598,14 @@ class IKReferenceGenerator(Node):
         m_p.point.z = float(self.p_des[k, 2])
         self.pub_p.publish(m_p)
 
+        # Publish waypoint markers (5 Hz to avoid flooding RViz)
+        if k % max(1, int(self.rate_hz / 5)) == 0:
+            wpi_marker = int(self.wp_idx[k])
+            self._publish_waypoint_markers(wpi_marker)
+
         # Publish phase info (once per second to reduce overhead)
         if k % max(1, int(self.rate_hz)) == 0:
             wpi = int(self.wp_idx[k])
-            # wp_idx is 1-based after prepending p_robot; _LAYERS is 0-based for
-            # the 9 original waypoints (WP1..WP9 → index 0..8).
             if wpi >= 1 and wpi <= len(_LAYERS):
                 layer = _LAYERS[wpi - 1]
             else:
@@ -532,7 +622,9 @@ class IKReferenceGenerator(Node):
             m_phase.data = json.dumps(phase)
             self.pub_phase.publish(m_phase)
 
-        self.play_idx += 1
+        # Only advance playback if convergence check passed
+        if not is_holding and advance:
+            self.play_idx += 1
 
 
 # ---------------------------------------------------------------------------

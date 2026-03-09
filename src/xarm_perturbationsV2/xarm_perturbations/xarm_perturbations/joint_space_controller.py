@@ -163,6 +163,8 @@ class JointSpaceController(Node):
         # ── Publishers ─────────────────────────────────────────────
         self.pub = self.create_publisher(TwistStamped, output_topic, 10)
         self.pub_actual = self.create_publisher(PointStamped, '/actual_position', 10)
+        self.pub_error  = self.create_publisher(PointStamped, '/controller/error', 10)
+        self.pub_jerr   = self.create_publisher(Float64MultiArray, '/controller/joint_error', 10)
 
         # ── Subscriptions ──────────────────────────────────────────
         self.create_subscription(JointState, '/joint_states',    self._js_cb,    10)
@@ -363,6 +365,21 @@ class JointSpaceController(Node):
         ap.point.y = float(p_actual[1])
         ap.point.z = float(p_actual[2])
         self.pub_actual.publish(ap)
+
+        # Publish Cartesian tracking error
+        ee_error = p_actual - self.p_des
+        err_msg = PointStamped()
+        err_msg.header.stamp = now.to_msg()
+        err_msg.header.frame_id = 'link_base'
+        err_msg.point.x = float(ee_error[0])
+        err_msg.point.y = float(ee_error[1])
+        err_msg.point.z = float(ee_error[2])
+        self.pub_error.publish(err_msg)
+
+        # Publish per-joint tracking error
+        jerr_msg = Float64MultiArray()
+        jerr_msg.data = e.tolist()
+        self.pub_jerr.publish(jerr_msg)
 
         # Log data
         t_abs = now.nanoseconds / 1e9
