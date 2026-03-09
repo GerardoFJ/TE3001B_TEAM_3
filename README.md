@@ -1,11 +1,11 @@
-# TE3001B_TEAM_3
-TE3001B Team 3 Repository
+# TE3001B_TEAM_4
+TE3001B Team 4 Repository
 
 ---
 
 ## xarm_perturbationsV2
 
-Paquete ROS 2 para el reto **TE300XB-5**: evaluación y comparación de dos controladores en espacio articular aplicados al brazo xArm Lite 6, con y sin perturbaciones externas.
+Paquete ROS 2 para el reto **Robotics Control Challenge 4.1**: evaluación y comparación de dos controladores en espacio articular aplicados al brazo xArm Lite 6, con y sin perturbaciones externas.
 
 ### Descripción general
 
@@ -49,17 +49,132 @@ Los CSVs de cada prueba se guardan en:
 src/xarm_perturbationsV2/xarm_perturbations/results/<trial_name>/
 ```
 
-### Launch
+### Uso
+
+> **Una vez por sesión** (en cada terminal antes de correr cualquier nodo):
+> ```bash
+> source ~/dev_ws/install/setup.bash
+> ```
+
+---
+
+**Terminal 0:**
+```bash
+colcon build
+```
 
 ```bash
-# CTC + perturbación gaussiana (configuración por defecto del launch)
-ros2 launch xarm_perturbations xarm_perturbations.launch.py
+ros2 launch xarm_moveit_servo lite6_moveit_servo_realmove.launch.py robot_ip:=192.168.1.175
+```
 
-# PID sin perturbación (manual)
+---
+
+#### Trial 1 — CTC sin perturbaciones
+
+**Terminal 1:**
+```bash
+ros2 run xarm_perturbations ik_reference_generator --ros-args \
+  -p wz:=2.5 -p lam:=0.015 -p k_task:=14.0 -p k_null:=1.5 \
+  -p dwell_sec:=1.5 -p segment_sec:=2.0 -p control_rate_hz:=200.0
+```
+
+**Terminal 2:**
+```bash
+ros2 run xarm_perturbations joint_space_controller --ros-args \
+  -p controller_type:=ctc \
+  -p output_topic:=/servo_server/delta_twist_cmds \
+  -p trial_name:=trial_ctc_nopert
+```
+
+---
+
+#### Trial 2 — PID sin perturbaciones
+
+**Terminal 1:**
+```bash
+ros2 run xarm_perturbations ik_reference_generator --ros-args \
+  -p wz:=2.5 -p lam:=0.015 -p k_task:=14.0 -p k_null:=1.5 \
+  -p dwell_sec:=1.5 -p segment_sec:=2.0 -p control_rate_hz:=200.0
+```
+
+**Terminal 2:**
+```bash
 ros2 run xarm_perturbations joint_space_controller --ros-args \
   -p controller_type:=pid \
   -p output_topic:=/servo_server/delta_twist_cmds \
   -p trial_name:=trial_pdpid_nopert
+```
+
+---
+
+#### Trial 3 — CTC con perturbaciones
+
+**Terminal 1:**
+```bash
+ros2 run xarm_perturbations ik_reference_generator --ros-args \
+  -p wz:=2.5 -p lam:=0.015 -p k_task:=14.0 -p k_null:=1.5 \
+  -p dwell_sec:=1.5 -p segment_sec:=2.0 -p control_rate_hz:=200.0
+```
+
+**Terminal 2:**
+```bash
+ros2 run xarm_perturbations joint_space_controller --ros-args \
+  -p controller_type:=ctc \
+  -p output_topic:=/controller_output \
+  -p trial_name:=trial_ctc_pert
+```
+
+**Terminal 3:**
+```bash
+ros2 run xarm_perturbations perturbation_injector --ros-args \
+  -p input_topic:=/controller_output \
+  -p output_topic:=/servo_server/delta_twist_cmds \
+  -p pub_reliability:=reliable \
+  -p enabled:=true \
+  -p mode:=gaussian \
+  -p gauss_std_linear:=0.01 \
+  -p gauss_axis:=x \
+  -p debug:=true
+```
+
+---
+
+#### Trial 4 — PID con perturbaciones
+
+**Terminal 1:**
+```bash
+ros2 run xarm_perturbations ik_reference_generator --ros-args \
+  -p wz:=2.5 -p lam:=0.015 -p k_task:=14.0 -p k_null:=1.5 \
+  -p dwell_sec:=1.5 -p segment_sec:=2.0 -p control_rate_hz:=200.0
+```
+
+**Terminal 2:**
+```bash
+ros2 run xarm_perturbations joint_space_controller --ros-args \
+  -p controller_type:=pid \
+  -p output_topic:=/controller_output \
+  -p trial_name:=trial_pdpid_pert
+```
+
+**Terminal 3:**
+```bash
+ros2 run xarm_perturbations perturbation_injector --ros-args \
+  -p input_topic:=/controller_output \
+  -p output_topic:=/servo_server/delta_twist_cmds \
+  -p pub_reliability:=reliable \
+  -p enabled:=true \
+  -p mode:=gaussian \
+  -p gauss_std_linear:=0.01 \
+  -p gauss_axis:=x \
+  -p debug:=true
+```
+
+---
+
+#### Verificar resultados
+
+```bash
+ls ~/dev_ws/src/xarm_ros2/xarm_perturbations/results/
 ```
 
 ### Safety features
@@ -76,6 +191,7 @@ Las gráficas y el reporte de este trabajo se encuentran en:
 
 ```
 src/xarm_perturbationsV2/xarm_perturbations/analysis/
+├── ReporteTeam4.pdf
 ├── plot_trials.py                  # Script que genera todas las gráficas
 └── plots/
     ├── joint_tracking_ctc_nopert.png     # Seguimiento articular — CTC sin pert.
