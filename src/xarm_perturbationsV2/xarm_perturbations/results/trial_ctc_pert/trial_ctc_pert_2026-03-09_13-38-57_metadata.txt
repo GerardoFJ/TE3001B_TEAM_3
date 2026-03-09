@@ -1,0 +1,10 @@
+trial_name: trial_ctc_pert
+timestamp:  2026-03-09_13-38-57
+controller: ctc
+rate_hz:    50.0
+samples:    317
+Kp_ctc: [30.0, 30.0, 30.0, 20.0, 15.0, 10.0]
+Kd_ctc: [10.0, 10.0, 10.0, 8.0, 6.0, 4.0]
+max_cart_speed: 0.1
+torque_limit:   10.0
+vel_limit:      1.5
