@@ -187,6 +187,8 @@ ls ~/dev_ws/src/xarm_ros2/xarm_perturbations/results/
 
 ## Análisis y Reporte
 
+> **Reporte:** [ReporteTeam4.pdf](src/xarm_perturbationsV2/xarm_perturbations/analysis/ReporteTeam4.pdf)
+
 Las gráficas y el reporte de este trabajo se encuentran en:
 
 ```
