@@ -5,7 +5,7 @@ TE3001B Team 3 Repository
 
 ## xarm_perturbationsV2
 
-Paquete ROS 2 para el reto **TE300XB-5**: evaluación y comparación de dos controladores en espacio articular aplicados al brazo xArm Lite 6, con y sin perturbaciones externas.
+Paquete ROS 2 para el reto **Robotics Control Challenge 4.1**: evaluación y comparación de dos controladores en espacio articular aplicados al brazo xArm Lite 6, con y sin perturbaciones externas.
 
 ### Descripción general
 
@@ -76,6 +76,7 @@ Las gráficas y el reporte de este trabajo se encuentran en:
 
 ```
 src/xarm_perturbationsV2/xarm_perturbations/analysis/
+├── ReporteTeam4.pdf
 ├── plot_trials.py                  # Script que genera todas las gráficas
 └── plots/
     ├── joint_tracking_ctc_nopert.png     # Seguimiento articular — CTC sin pert.
