@@ -1,0 +1,976 @@
+%% ============================================================
+%% ENTREGABLE — TE3001B Fundamentación de Robótica
+%% Teleoperación con Sensado de Fuerza: xArm Lite 6 (Maestro-Esclavo)
+%% Formato IEEE Transactions — Plantilla para Alumnos
+%% Prof. Alberto Muñoz — Computational Robotics Lab
+%% Tecnológico de Monterrey — 2026
+%% ============================================================
+\documentclass[journal,10pt,twoside]{IEEEtran}
+
+%% ── Paquetes base ────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{url}
+\usepackage{hyperref}   %% hyperref DESPUÉS de xcolor para evitar conflictos
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,shapes,positioning,calc,backgrounds}
+\tcbuselibrary{breakable,skins}
+
+%% ── Colores institucionales ──────────────────────────────────
+%% IMPORTANTE: definir colores ANTES de \hypersetup
+\definecolor{tec_blue}{RGB}{0,68,124}
+\definecolor{tec_lightblue}{RGB}{0,140,200}
+\definecolor{tec_red}{RGB}{190,30,45}
+\definecolor{tec_gray}{RGB}{100,100,100}
+\definecolor{code_bg}{RGB}{245,247,250}
+\definecolor{code_kw}{RGB}{0,100,180}
+\definecolor{code_str}{RGB}{180,50,20}
+\definecolor{code_cmt}{RGB}{80,140,80}
+\definecolor{box_todo}{RGB}{255,243,205}
+\definecolor{box_todo_border}{RGB}{200,140,0}
+\definecolor{box_rubric}{RGB}{232,245,233}
+\definecolor{box_rubric_border}{RGB}{67,160,71}
+\definecolor{box_theory}{RGB}{227,242,253}
+\definecolor{box_theory_border}{RGB}{25,118,210}
+
+%% hypersetup aquí, DESPUÉS de definir tec_blue ───────────────
+\hypersetup{colorlinks=true, linkcolor=tec_blue, urlcolor=tec_blue,
+            citecolor=tec_blue}
+
+%% ── Cajas de tcolorbox ───────────────────────────────────────
+\newtcolorbox{todobox}[1][Completar]{
+  colback=box_todo, colframe=box_todo_border,
+  title={\textbf{$\triangleright$ #1}},
+  fonttitle=\bfseries\color{tec_gray},
+  breakable, enhanced, left=4pt, right=4pt
+}
+\newtcolorbox{rubricbox}[1][Rúbrica]{
+  colback=box_rubric, colframe=box_rubric_border,
+  title={\textbf{\checkmark\ Criterio de Evaluación — #1}},
+  fonttitle=\bfseries\small\color{box_rubric_border},
+  breakable, enhanced, left=4pt, right=4pt
+}
+\newtcolorbox{theorybox}[1][Marco Teórico]{
+  colback=box_theory, colframe=box_theory_border,
+  title={\textbf{(i) Contexto: #1}},
+  fonttitle=\bfseries\small\color{tec_blue},
+  breakable, enhanced, left=4pt, right=4pt
+}
+
+%% ── Estilo de código ─────────────────────────────────────────
+\lstdefinestyle{python}{
+  language=Python,
+  backgroundcolor=\color{code_bg},
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{code_kw}\bfseries,
+  stringstyle=\color{code_str},
+  commentstyle=\color{code_cmt}\itshape,
+  numbers=left, numberstyle=\tiny\color{tec_gray},
+  numbersep=6pt, frame=single, tabsize=4,
+  showstringspaces=false, breaklines=true,
+  morekeywords={import,from,as,def,class,return,True,False,None,self},
+  literate={á}{{\'{a}}}1 {é}{{\'{e}}}1 {í}{{\'{i}}}1
+           {ó}{{\'{o}}}1 {ú}{{\'{u}}}1 {ñ}{{\~{n}}}1,
+}
+\lstset{style=python}
+
+%% ── Macros de ayuda ──────────────────────────────────────────
+\newcommand{\answerline}[1][3cm]{\underline{\hspace{#1}}}
+\newcommand{\pts}[1]{\textcolor{tec_red}{\textbf{[#1 pts]}}}
+\newcommand{\TODO}[1]{\begin{todobox}[Respuesta del equipo]
+  \textit{#1}
+\end{todobox}}
+\newcommand{\FIGURE}[1]{\begin{todobox}[Insertar figura]
+  \centering
+  %% \resizebox escala el tikzpicture al ancho disponible
+  \resizebox{\linewidth}{!}{%
+    \begin{tikzpicture}
+      \draw[tec_gray, dashed, line width=1pt] (0,0) rectangle (8,4);
+      \node[tec_gray, font=\small] at (4,2) {#1};
+    \end{tikzpicture}%
+  }
+\end{todobox}}
+
+%% ── Metadatos del artículo ───────────────────────────────────
+\begin{document}
+
+\title{Teleoperación con Sensado de Fuerza Física\\
+  entre dos xArm Lite 6:\\
+  Diseño, Implementación y Evaluación Experimental}
+
+\author{%
+  \IEEEauthorblockN{%
+    Nombre Alumno 1\IEEEauthorrefmark{1},\;
+    Nombre Alumno 2\IEEEauthorrefmark{1},\;
+    Nombre Alumno 3\IEEEauthorrefmark{1}%
+  }\\
+  \IEEEauthorblockA{%
+    \IEEEauthorrefmark{1}%
+    Computational Robotics Lab, Tecnológico de Monterrey,
+    Monterrey, N.L., México\\
+    \texttt{\{matrícula1, matrícula2, matrícula3\}@tec.mx}
+  }
+}
+
+\maketitle
+
+%% ── Abstract ─────────────────────────────────────────────────
+\begin{abstract}
+%% tcolorbox NO puede usarse dentro del abstract de IEEEtran.
+%% Reemplazar este párrafo con el resumen real (150--200 palabras).
+%% Estructura sugerida: (1) problema, (2) arquitectura maestro-esclavo
+%% con xArm Lite 6, (3) estrategia de sensado de fuerza, (4) resultados
+%% experimentales (error de posición, fuerza de contacto, latencia),
+%% (5) conclusiones principales. No incluyan fórmulas en el abstract.
+\textit{[Completar: escriban aquí el resumen de 150--200 palabras.]}
+\end{abstract}
+
+\begin{IEEEkeywords}
+  teleoperación, sensado de fuerza, xArm Lite 6, control de impedancia,
+  retroalimentación háptica, \answerline[2cm], \answerline[2cm]
+\end{IEEEkeywords}
+
+%% ============================================================
+\section{Introducción}
+%% ============================================================
+
+\IEEEPARstart{L}{a} teleoperación con retroalimentación de fuerza
+constituye un paradigma fundamental en robótica cuando se requiere que
+un operador humano interactúe con entornos remotos o peligrosos sin
+presencia física~\cite{murray1994}. El xArm Lite 6, desarrollado por
+UFACTORY~\cite{xarm_github}, es un manipulador de 6 grados de libertad
+(DOF) con capacidad de control de torque que lo hace idóneo para experimentos
+de sensado de fuerza por torque articular.
+
+\begin{theorybox}[Motivación]
+  El reto central de este proyecto es cerrar el lazo de fuerza entre
+  dos brazos robóticos: el robot \textbf{Maestro}, operado por el humano,
+  y el robot \textbf{Esclavo}, que interactúa con el entorno.
+  La fuerza de contacto estimada en el esclavo debe reflejarse como
+  torque en las articulaciones del maestro, creando la sensación
+  háptica que guía al operador.
+\end{theorybox}
+
+\subsection{Contexto y Motivación}
+\TODO{Describan en 2--3 párrafos por qué es relevante la teleoperación
+con sensado de fuerza. Mencionen al menos DOS aplicaciones industriales
+o médicas concretas donde se utiliza esta tecnología. Citen al menos
+3 referencias del estado del arte (artículos IEEE, libros de texto).}
+
+\subsection{Contribuciones del Trabajo}
+\TODO{Enumeren de forma concisa (lista con viñetas) las 3--5 contribuciones
+específicas de su implementación. Por ejemplo: diseño del protocolo de
+comunicación, estrategia de estimación de fuerza elegida, experimentos
+realizados, etc.}
+
+\subsection{Estructura del Artículo}
+El resto de este artículo se organiza como sigue:
+la Sección~\ref{sec:background} presenta los fundamentos teóricos;
+la Sección~\ref{sec:architecture} describe la arquitectura del sistema;
+la Sección~\ref{sec:force} detalla la estrategia de sensado de fuerza;
+la Sección~\ref{sec:control} expone el esquema de control;
+la Sección~\ref{sec:implementation} documenta la implementación con xArm SDK;
+la Sección~\ref{sec:experiments} reporta los resultados experimentales;
+la Sección~\ref{sec:discussion} discute los hallazgos;
+y la Sección~\ref{sec:conclusions} concluye el trabajo.
+
+%% ============================================================
+\section{Marco Teórico}
+\label{sec:background}
+%% ============================================================
+
+\subsection{Cinemática y Jacobiano del xArm Lite 6}
+
+El xArm Lite 6 es un manipulador de $n=6$ DOF con articulaciones
+rotacionales. Su cinemática directa se describe mediante la convención
+Denavit-Hartenberg (DH) o Product of Exponentials (PoE).
+
+\begin{theorybox}[Jacobiano Geométrico]
+  El Jacobiano $\bm{J}(\bm{q}) \in \mathbb{R}^{6\times6}$ mapea
+  velocidades articulares a velocidades cartesianas del efector final:
+  \[
+    \begin{pmatrix} \bm{v} \\ \bm{\omega} \end{pmatrix} = \bm{J}(\bm{q})\,\dot{\bm{q}}
+  \]
+  Su transpuesta mapea fuerzas/torques cartesianos a torques articulares:
+  \[
+    \bm{\tau} = \bm{J}^\top(\bm{q})\,\bm{F}_{ext}
+  \]
+  Esta relación es la base del \emph{torque-based force sensing}.
+\end{theorybox}
+
+\subsubsection*{Pregunta~T1 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Expliquen la diferencia entre el \textbf{Jacobiano analítico}
+        y el \textbf{Jacobiano geométrico} para el xArm Lite 6.
+        ¿Cuál utilizan en su implementación y por qué?
+  \item Identifiquen y describan \textbf{dos configuraciones singulares}
+        del xArm Lite 6 a partir de su geometría DH. ¿Qué ocurre con la
+        estimación de fuerza $\hat{\bm{F}} = (\bm{J}^\top)^+\bm{\tau}$
+        cerca de esas singularidades?
+  \item ¿Cómo detectan programáticamente que el robot está cerca de
+        una singularidad? Escriban la condición en términos del
+        número de condición $\kappa(\bm{J})$.
+\end{enumerate}
+\TODO{Respondan aquí la Pregunta T1. Incluyan las expresiones
+matemáticas correspondientes y una figura con las configuraciones
+singulares identificadas en el xArm Lite 6.}
+
+\FIGURE{Fig. T1: Configuraciones singulares del xArm Lite 6.
+Señalen las articulaciones involucradas.}
+
+\subsection{Dinámica del Manipulador}
+
+La dinámica de un robot rígido de $n$ DOF se expresa como:
+\begin{equation}
+  \bm{M}(\bm{q})\ddot{\bm{q}} + \bm{C}(\bm{q},\dot{\bm{q}})\dot{\bm{q}}
+  + \bm{g}(\bm{q}) = \bm{\tau} - \bm{J}^\top\bm{F}_{ext}
+  \label{eq:dynamics}
+\end{equation}
+donde $\bm{M}$ es la matriz de inercia, $\bm{C}$ la matriz de
+Coriolis/centrífuga y $\bm{g}$ el vector gravitacional.
+
+\subsubsection*{Pregunta~T2 \pts{10}}
+\begin{enumerate}[label=(\alph*)]
+  \item Partiendo de la Ec.~\eqref{eq:dynamics}, \textbf{deriven} la
+        ley de control de par calculado (Computed Torque Control, CTC)
+        y demuestren que produce la dinámica de error lineal:
+        \[
+          \ddot{\bm{e}} + K_v\dot{\bm{e}} + K_p\bm{e} = \bm{0}
+        \]
+        ¿Qué condiciones sobre $K_p$ y $K_v$ garantizan
+        estabilidad asintótica global?
+  \item Para el xArm Lite 6 operando en modo \texttt{SERVO} de
+        la SDK, el bucle de control interno trabaja a \answerline[1.5cm]~Hz.
+        Expliquen cómo esto limita la elección de $K_p$ y $K_v$.
+  \item Expresen los polos del sistema cerrado en términos de
+        $\omega_n$ (frecuencia natural) y $\zeta$ (amortiguamiento).
+        ¿Qué valor de $\zeta$ usaron y por qué?
+\end{enumerate}
+\TODO{Respondan aquí la Pregunta T2. Incluyan la derivación paso a paso
+y una gráfica de la respuesta al escalón del controlador sintonizado
+con sus valores de $K_p$, $K_v$.}
+
+\FIGURE{Fig. T2: Respuesta al escalón del controlador CTC con sus
+ganancias $K_p$ y $K_v$. Señalen $\omega_n$, $\zeta$, tiempo de
+establecimiento y sobreimpulso.}
+
+\subsection{Control de Impedancia}
+
+El control de impedancia~\cite{hogan1985} modela el efector final como
+un sistema masa-resorte-amortiguador virtual:
+\begin{equation}
+  \bm{F}_{ctrl} = \bm{K}_d(\bm{x}_d - \bm{x})
+                + \bm{B}_d(\dot{\bm{x}}_d - \dot{\bm{x}})
+                + \bm{M}_d(\ddot{\bm{x}}_d - \ddot{\bm{x}})
+  \label{eq:impedance}
+\end{equation}
+
+\subsubsection*{Pregunta~T3 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Para la Ec.~\eqref{eq:impedance}, analicen el efecto de
+        aumentar $\bm{K}_d$ en: (i) la sensación háptica del operador,
+        (ii) la estabilidad con retardo $T_d$, (iii) la velocidad
+        de respuesta ante contacto.
+  \item Dado un retardo de red $T_d = 20$~ms medido en su laboratorio,
+        calculen la rigidez virtual máxima $K_{d,max}$ que garantiza
+        estabilidad usando el criterio de pasividad de Colgate~\cite{colgate1993}:
+        \[
+          K_{d,max} < \frac{\pi}{2\,T_d\,\omega_c}
+        \]
+        donde $\omega_c$ es el ancho de banda del controlador interno
+        del xArm. Justifiquen el valor de $\omega_c$ que usan.
+  \item ¿Usaron impedancia en espacio articular o cartesiano?
+        Justifiquen su elección para la tarea de teleoperación.
+\end{enumerate}
+\TODO{Respondan aquí la Pregunta T3. Incluyan los cálculos numéricos
+y una tabla comparativa de comportamiento con distintos valores de
+$K_d$ probados.}
+
+%% ============================================================
+\section{Arquitectura del Sistema}
+\label{sec:architecture}
+%% ============================================================
+
+\subsection{Visión General}
+
+El sistema completo consta de dos xArm Lite 6 conectados a sus
+respectivas computadoras de control mediante cable Ethernet, y
+comunicados entre sí mediante una red LAN o Wi-Fi.
+
+\subsubsection*{Pregunta~A1 \pts{10}}
+\begin{enumerate}[label=(\alph*)]
+  \item Elaboren un \textbf{diagrama de bloques} completo del sistema
+        maestro-esclavo que incluya: xArm Maestro, PC Maestro,
+        protocolo de comunicación, PC Esclavo, xArm Esclavo,
+        sensor/estimador de fuerza, y lazo de retroalimentación háptica.
+        Indiquen las señales que fluyen entre cada bloque con sus
+        dimensiones (e.g., $\bm{q}\in\mathbb{R}^6$, $\bm{F}\in\mathbb{R}^3$).
+  \item Describan el \textbf{flujo de datos} en un ciclo de control:
+        ¿qué señales se leen del robot Maestro? ¿qué se envía al Esclavo?
+        ¿qué se retroalimenta al Maestro?
+  \item ¿Cuál es la frecuencia de actualización de su lazo de control?
+        Justifiquen por qué eligieron esa frecuencia en relación con
+        las capacidades del xArm SDK (\texttt{set\_servo\_angle} vs.
+        \texttt{set\_position}).
+\end{enumerate}
+
+\FIGURE{Fig. A1: Diagrama de bloques del sistema de teleoperación
+maestro-esclavo con xArm Lite 6. Señalen todas las señales con sus
+dimensiones.}
+
+\TODO{Respondan aquí la Pregunta A1.}
+
+\subsection{Protocolo de Comunicación}
+
+\subsubsection*{Pregunta~A2 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Comparen el uso de \textbf{UDP vs TCP} para la comunicación
+        en tiempo real entre los dos PCs. ¿Cuál eligieron y por qué?
+        Completen la siguiente tabla con los resultados medidos:
+
+        \smallskip
+        \resizebox{\linewidth}{!}{%
+        \begin{tabular}{lcc}
+          \toprule
+          \textbf{Métrica} & \textbf{UDP} & \textbf{TCP} \\
+          \midrule
+          RTT promedio (ms)      & \answerline[2cm] & \answerline[2cm] \\
+          Jitter (ms)            & \answerline[2cm] & \answerline[2cm] \\
+          Paquetes perdidos (\%) & \answerline[2cm] & N/A \\
+          Throughput (KB/s)      & \answerline[2cm] & \answerline[2cm] \\
+          \bottomrule
+        \end{tabular}}
+        \smallskip
+
+  \item Definan el formato del \textbf{paquete de datos} que intercambian.
+        Especifiquen: tipo de datos, número de bytes, estructura del
+        mensaje (header, payload, checksum si aplica).
+  \item Con un RTT medido de $T_{RTT}$, ¿cuál es el retardo efectivo
+        $T_d = T_{RTT}/2$ en su sistema? ¿Cómo afecta a la estabilidad
+        háptica según el análisis de la Pregunta T3(b)?
+\end{enumerate}
+
+\TODO{Respondan aquí la Pregunta A2. Incluyan la captura de pantalla
+de \texttt{ping} y de su herramienta de test de red entre las dos PCs.}
+
+\FIGURE{Fig. A2: Histograma de RTT medido entre PC Maestro y
+PC Esclavo. Incluyan estadísticas: media, desviación estándar, percentil 99.}
+
+%% ============================================================
+\section{Estrategia de Sensado de Fuerza}
+\label{sec:force}
+%% ============================================================
+
+\begin{theorybox}[¿Cómo «siente» la fuerza un xArm sin sensor F/T externo?]
+  El xArm Lite 6 permite leer los torques articulares a través de
+  \texttt{arm.get\_joint\_states()} o mediante el modo de control de
+  torque. A partir de los torques medidos $\bm{\tau}_{meas}$ y el
+  modelo dinámico del robot, es posible \emph{estimar} la fuerza
+  externa en el efector final sin instalar un sensor F/T dedicado.
+  Esta técnica se denomina \textbf{sensado de fuerza basado en torque articular}.
+\end{theorybox}
+
+\subsection{Estimación de Fuerza por Torque Articular}
+
+La fuerza externa en el efector se estima como:
+\begin{equation}
+  \hat{\bm{F}}_{ext} = \left(\bm{J}^\top\right)^+
+    \underbrace{\left(\bm{\tau}_{meas} - \bm{\tau}_{model}\right)}_{\Delta\bm{\tau}}
+  \label{eq:force_estimate}
+\end{equation}
+donde $\bm{\tau}_{model} = \bm{M}(\bm{q})\ddot{\bm{q}} +
+\bm{C}\dot{\bm{q}} + \bm{g}(\bm{q})$ es el torque predicho por el modelo.
+
+\subsubsection*{Pregunta~F1 \pts{12}}
+\begin{enumerate}[label=(\alph*)]
+  \item Expliquen \textbf{tres fuentes de error} en la estimación de
+        $\hat{\bm{F}}_{ext}$ usando la Ec.~\eqref{eq:force_estimate}
+        para el xArm Lite 6. Proporcionen una estimación cuantitativa
+        del error que introduce cada una.
+  \item En su implementación, ¿compensaron la gravedad antes de estimar
+        la fuerza? Escriban la expresión de $\bm{g}(\bm{q})$ utilizada
+        o describan cómo la obtuvieron del modelo URDF del xArm.
+  \item Apliquen un \textbf{filtro pasa-bajas} a $\hat{\bm{F}}_{ext}$.
+        Escriban la función de transferencia discreta del filtro
+        utilizado, justifiquen la frecuencia de corte elegida
+        y muestren su respuesta en frecuencia.
+  \item ¿Cuál es el umbral de fuerza $F_{th}$ que eligieron para
+        detectar contacto? Justifiquen en términos de la relación
+        señal-ruido (SNR) medida con el robot en reposo.
+\end{enumerate}
+
+\TODO{Respondan aquí la Pregunta F1. Incluyan la expresión explícita
+de cada término de la Ec.~\eqref{eq:force_estimate} para su
+configuración específica de laboratorio.}
+
+\FIGURE{Fig. F1: (a) Torques articulares medidos vs. predichos por
+el modelo en una trayectoria de prueba. (b) Fuerza estimada
+$\hat{\bm{F}}_{ext}(t)$ sin y con filtro pasa-bajas.}
+
+\subsection{Alternativas de Sensado Consideradas}
+
+\subsubsection*{Pregunta~F2 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Comparen las siguientes estrategias de sensado de fuerza
+        para el xArm Lite 6. Completen la tabla:
+
+\smallskip
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{p{2.4cm}p{2cm}p{2cm}p{1cm}}
+  \toprule
+  \textbf{Estrategia} & \textbf{Ventajas} & \textbf{Desventajas} & \textbf{Costo} \\
+  \midrule
+  Torque articular (sin sensor externo)
+    & \answerline[1.8cm] & \answerline[1.8cm] & Bajo \\
+  Sensor F/T en muñeca (DIY)
+    & \answerline[1.8cm] & \answerline[1.8cm] & Alto \\
+  Visión por computadora (force from deformation)
+    & \answerline[1.8cm] & \answerline[1.8cm] & Medio \\
+  Galgas extensométricas en el efector
+    & \answerline[1.8cm] & \answerline[1.8cm] & Medio \\
+  \bottomrule
+\end{tabular}}
+\smallskip
+
+  \item Justifiquen la estrategia que implementaron indicando
+        la razón principal (costo, disponibilidad de hardware,
+        precisión requerida, tiempo de implementación).
+  \item Si tuvieran un sensor en la muñeca del
+        esclavo, ¿cómo modificaron su pipeline de fuerza?
+        Describan los cambios en software y hardware.
+\end{enumerate}
+
+\TODO{Respondan aquí la Pregunta F2.}
+
+%% ============================================================
+\section{Esquema de Control}
+\label{sec:control}
+%% ============================================================
+
+\subsection{Control del Robot Esclavo}
+
+\subsubsection*{Pregunta~C1 \pts{10}}
+\begin{enumerate}[label=(\alph*)]
+  \item Describan la ley de control implementada en el robot Esclavo.
+        Escriban la expresión matemática completa e indiquen qué modo
+        de control del xArm SDK utilizaron
+        (\texttt{set\_servo\_angle}, \texttt{set\_position},
+        o \texttt{set\_servo\_cartesian}).
+        ¿Por qué eligieron ese modo?
+  \item Muestren el diagrama de flujo (flowchart) del ciclo de control
+        del esclavo: lectura de posición del maestro $\rightarrow$
+        cálculo de referencia $\rightarrow$ envío al xArm $\rightarrow$
+        lectura de torques $\rightarrow$ estimación de fuerza
+        $\rightarrow$ envío de feedback.
+  \item Introdujeron algún escalado de posición/velocidad entre
+        maestro y esclavo (factor $\alpha$)?
+        \[
+          \bm{x}_{slave}^{ref} = \alpha\,\bm{x}_{master}
+        \]
+        Justifiquen el valor de $\alpha$ elegido considerando
+        el espacio de trabajo de ambos robots.
+  \item Implementaron alguna \textbf{limitación de fuerza}
+        (\textit{force clamping}) para proteger el robot esclavo?
+        Describan la condición de saturación.
+\end{enumerate}
+
+\TODO{Respondan aquí la Pregunta C1. Incluyan el fragmento de código
+Python que implementa el ciclo de control del esclavo.}
+
+\begin{lstlisting}[caption={Ciclo de control del robot Esclavo — Completar con su implementación real},
+                   label={lst:slave}]
+# ── Completar con el código real de su implementación ──
+# Ciclo principal del robot Esclavo
+import time
+from xarm.wrapper import XArmAPI
+
+arm_slave = XArmAPI('192.168.1.XXX')  # <-- IP real del esclavo
+arm_slave.motion_enable(enable=True)
+arm_slave.set_mode(?)  # <-- modo elegido y justificación
+arm_slave.set_state(0)
+
+while running:
+    # 1. Recibir posición/referencia del Maestro vía UDP
+    ref = receive_from_master()   # <-- implementar
+
+    # 2. Enviar comando al xArm Esclavo
+    arm_slave.???                 # <-- completar
+
+    # 3. Leer torques articulares
+    _, torques = arm_slave.???    # <-- completar
+
+    # 4. Estimar fuerza externa (Ec. 3)
+    F_ext = estimate_force(torques, arm_slave.get_joint_states())
+
+    # 5. Enviar F_ext al Maestro
+    send_to_master(F_ext)         # <-- implementar
+
+    time.sleep(1.0 / CONTROL_HZ)
+\end{lstlisting}
+
+\subsubsection*{Pregunta~C2 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item En el robot Maestro, la retroalimentación háptica se implementa
+        aplicando torques articulares proporcionales a la fuerza estimada:
+        \[
+          \bm{\tau}_{m,fb} = \bm{J}_m^\top \cdot \beta \cdot \hat{\bm{F}}_{ext}
+        \]
+        ¿Qué representa físicamente $\beta$?
+        ¿Cuál es el valor máximo de $\beta$ que permite su sistema
+        antes de volverse inestable?
+        Justifiquen con la condición de pasividad de la red háptica.
+  \item ¿El xArm Lite 6 permite aplicar torques articulares directamente
+        desde la SDK? Investiguen el modo \texttt{SERVO} o
+        \texttt{TORQUE} de la API~\cite{xarm_github}.
+        Si no es posible directamente, ¿qué alternativa implementaron
+        para simular el efecto háptico en el maestro?
+  \item Muestren el fragmento de código Python que implementa el
+        feedback háptico en el maestro.
+\end{enumerate}
+
+\TODO{Respondan aquí la Pregunta C2. Incluyan los cálculos de $\beta_{max}$
+y el código correspondiente.}
+
+%% ============================================================
+\section{Implementación con xArm SDK}
+\label{sec:implementation}
+%% ============================================================
+
+\begin{theorybox}[xArm Python SDK]
+  El repositorio oficial~\cite{xarm_github} provee la librería
+  \texttt{xArm-Python-SDK} con la clase \texttt{XArmAPI}.
+  Los modos de operación relevantes son:
+  \textbf{Modo~0} (posición), \textbf{Modo~1} (servo/ángulo),
+  \textbf{Modo~4} (velocidad articular), \textbf{Modo~6} (pose cartesiana).
+  El estado del robot se controla con \texttt{set\_state()}:
+  estado~0 (sport), estado~3 (pausa), estado~4 (stop).
+\end{theorybox}
+
+\subsubsection*{Pregunta~I1 \pts{10}}
+\begin{enumerate}[label=(\alph*)]
+  \item Documenten el procedimiento completo de configuración de
+        \textbf{ambos xArm Lite 6} para su experimento:
+        dirección IP de cada robot, modo de operación, estado inicial,
+        parámetros de seguridad (velocidad máxima, torque máximo,
+        zona de colisión).
+  \item Describan el procedimiento de \textbf{calibración} que realizaron:
+        ¿cómo determinaron la posición inicial del maestro y el esclavo?
+        ¿Cómo sincronizaron sus espacios de trabajo?
+  \item Encontraron algún \textbf{bug o limitación} de la SDK que
+        debieron superar? Documenten la solución implementada.
+        (Ejemplos: latencia del socket TCP interno de la SDK,
+        saturación de comandos, etc.)
+  \item ¿Cómo manejaron las \textbf{excepciones de seguridad}
+        (\textit{error codes}) del xArm? Escriban el código de
+        manejo de errores implementado.
+\end{enumerate}
+
+\TODO{Respondan aquí la Pregunta I1. Esta sección debe ser suficientemente
+detallada para que otro equipo pueda replicar exactamente su setup.}
+
+\begin{lstlisting}[caption={Configuración inicial de los xArm — Completar con su implementación},
+                   label={lst:setup}]
+# ── Completar con el código real de configuración ──
+from xarm.wrapper import XArmAPI
+
+def setup_robot(ip, max_vel=None, max_acc=None):
+    """Configurar xArm para teleoperación.
+    
+    Args:
+        ip: Dirección IP del robot (str)
+        max_vel: Velocidad máxima articular (°/s)
+        max_acc: Aceleración máxima articular (°/s²)
+    Returns:
+        arm: instancia configurada de XArmAPI
+    """
+    arm = XArmAPI(ip)
+    arm.motion_enable(enable=True)
+    arm.set_mode(?)        # <-- justificar
+    arm.set_state(0)
+    
+    # Configuración de límites de seguridad
+    arm.set_joint_maxacc(?)    # <-- valor elegido
+    arm.set_tcp_maxacc(?)      # <-- valor elegido
+    
+    # Posición inicial (home)
+    arm.set_servo_angle(angle=?, speed=?, wait=True)
+    
+    return arm
+
+# Inicializar ambos robots
+arm_master = setup_robot('192.168.1.???')  # <-- IP real maestro
+arm_slave  = setup_robot('192.168.1.???')  # <-- IP real esclavo
+\end{lstlisting}
+
+%% ============================================================
+\section{Resultados Experimentales}
+\label{sec:experiments}
+%% ============================================================
+
+\subsection{Configuración Experimental}
+
+\subsubsection*{Pregunta~E1 \pts{6}}
+Describan con precisión el setup experimental:
+\begin{enumerate}[label=(\alph*)]
+  \item Especificaciones del hardware utilizado:
+  \smallskip
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Componente} & \textbf{PC Maestro} & \textbf{PC Esclavo} \\
+    \midrule
+    CPU      & \answerline[2cm] & \answerline[2cm] \\
+    RAM      & \answerline[2cm] & \answerline[2cm] \\
+    OS       & \answerline[2cm] & \answerline[2cm] \\
+    Python   & \answerline[2cm] & \answerline[2cm] \\
+    xArm SDK & \answerline[2cm] & \answerline[2cm] \\
+    \bottomrule
+  \end{tabular}}
+  \smallskip
+  \item Describan la \textbf{tarea experimental} realizada
+        (trayectoria seguida, objeto con el que interactuó el esclavo,
+        tipo de contacto generado deliberadamente).
+  \item ¿Cuántos ensayos realizaron? ¿Cuál fue el criterio de éxito
+        de cada ensayo?
+\end{enumerate}
+
+\TODO{Respondan aquí la Pregunta E1.}
+
+\subsection{Desempeño de Seguimiento de Posición}
+
+\subsubsection*{Pregunta~E2 \pts{12}}
+\begin{enumerate}[label=(\alph*)]
+  \item Grafiquen el \textbf{error de seguimiento articular}
+        $e_i(t) = q_i^{master}(t) - q_i^{slave}(t)$ para
+        las 6 articulaciones durante un ensayo representativo.
+        ¿Cuál articulación presentó mayor error? ¿Por qué?
+  \item Calculen las métricas de desempeño y llenen la tabla:
+
+  \smallskip
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{lccc}
+    \toprule
+    \textbf{Articulación} & \textbf{Error RMS (°)} & \textbf{Error máx. (°)} & \textbf{Retardo (ms)} \\
+    \midrule
+    Joint 1 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 2 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 3 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 4 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 5 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 6 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    \midrule
+    \textbf{Promedio} & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    \bottomrule
+  \end{tabular}}
+  \smallskip
+
+  \item El retardo de seguimiento medido, ¿es consistente con el RTT
+        de red medido en la Pregunta A2? Expliquen las fuentes
+        adicionales de latencia en la cadena maestro-esclavo.
+  \item ¿En qué momentos el error fue mayor? ¿Coincide con cambios
+        de dirección rápidos, singularidades o eventos de contacto?
+\end{enumerate}
+
+\FIGURE{Fig. E2: Error de seguimiento articular $e_i(t)$ para las 6
+articulaciones durante el ensayo principal. Señalen los instantes
+de contacto.}
+
+\TODO{Respondan aquí la Pregunta E2.}
+
+\subsection{Estimación y Retroalimentación de Fuerza}
+
+\subsubsection*{Pregunta~E3 \pts{14} — \textit{Sección central del entregable}}
+\begin{enumerate}[label=(\alph*)]
+  \item Grafiquen $\hat{\bm{F}}_{ext}(t) = [F_x, F_y, F_z]^\top$
+        durante un evento de contacto controlado
+        (e.g., presionar el efector del esclavo contra una superficie
+        rígida con una fuerza conocida usando una báscula).
+        ¿Cuál fue la fuerza de contacto máxima registrada?
+  \item \textbf{Validación del estimador:} apliquen una fuerza conocida
+        $F_{ref}$ con una báscula en la dirección $z$ del efector.
+        Grafiquen $\hat{F}_z(t)$ vs. $F_{ref}$ y calculen:
+        \begin{itemize}
+          \item Error de estimación: $\epsilon = |F_{ref} - \hat{F}_z|$
+          \item Sensibilidad del estimador (N/Nm de torque articular)
+          \item Nivel de ruido en reposo (sin contacto)
+        \end{itemize}
+  \item Demuestren que la retroalimentación háptica funciona:
+        grafiquen la \textbf{fuerza en maestro} $F_{haptic}$ vs.
+        la \textbf{fuerza estimada en esclavo} $\hat{F}_{slave}$.
+        ¿Son proporcionales con factor $\beta$?
+  \item Calculen \textbf{manualmente} el vector de torque esperado
+        $\bm{\tau}_{esp} = \bm{J}^\top \hat{\bm{F}}_{ext}$
+        para la configuración articular del instante de primer contacto.
+        Comparen con $\bm{\tau}_{meas}$ de sus gráficas.
+        ¿Coinciden en orden de magnitud?
+\end{enumerate}
+
+\FIGURE{Fig. E3a: Fuerza estimada $\hat{\bm{F}}_{ext}(t) = [F_x, F_y, F_z]^\top$
+durante el evento de contacto. Señalen: inicio de contacto ($F > F_{th}$),
+fuerza máxima, y fin de contacto.}
+
+\FIGURE{Fig. E3b: Validación del estimador: fuerza de referencia
+$F_{ref}$ (báscula) vs. fuerza estimada $\hat{F}_z$ en función del tiempo.
+Incluyan la recta de regresión lineal y $R^2$.}
+
+\TODO{Respondan aquí la Pregunta E3. Esta es la sección más importante
+del entregable. Muestren evidencia fotográfica del setup de validación
+con la báscula.}
+
+\subsection{Análisis de Estabilidad del Sistema Háptico}
+
+\subsubsection*{Pregunta~E4 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Realizaron la prueba de \textbf{contacto con pared rígida}
+        (hard wall contact) tanto en simulación (pared simulada con
+        alto $K_d$) como en objeto real. ¿El sistema fue estable en
+        ambos casos? Grafiquen la respuesta de fuerza.
+  \item Identifiquen el valor de $\beta_{crit}$ experimental
+        (incrementando $\beta$ hasta observar oscilaciones).
+        ¿Coincide con el valor teórico calculado en C2(a)?
+  \item ¿Observaron algún \textbf{acoplamiento de inestabilidad}
+        cuando el maestro y el esclavo estaban en contacto simultáneo
+        con sus respectivas superficies? Describan el fenómeno.
+\end{enumerate}
+
+\TODO{Respondan aquí la Pregunta E4.}
+
+%% ============================================================
+\section{Discusión}
+\label{sec:discussion}
+%% ============================================================
+
+\subsubsection*{Pregunta~D1 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item \textbf{Limitaciones del sistema implementado:}
+        Identifiquen y analicen cuantitativamente al menos \textbf{tres
+        limitaciones} de su implementación (e.g., precisión del
+        estimador de fuerza, latencia, espacio de trabajo, etc.).
+        Para cada limitación, propongan una solución concreta y
+        viable con el hardware disponible.
+  \item \textbf{Comparación con estado del arte:}
+        Comparen sus métricas de desempeño (error de posición,
+        precisión de fuerza, latencia) con al menos DOS trabajos
+        publicados de teleoperación con brazos robóticos similares.
+        ¿En qué aspectos su sistema es competitivo? ¿En cuáles
+        queda rezagado?
+  \item \textbf{Escalabilidad:} Si tuvieran que operar este sistema
+        con un retardo de $T_d = 200$~ms (e.g., operación
+        transcontinental), ¿qué modificaciones al controlador
+        serían necesarias? Mencionen al menos una técnica
+        del estado del arte (e.g., wave variables, model mediation).
+  \item \textbf{Aplicación real:} Propongan una aplicación concreta
+        en la industria o medicina donde su sistema, con las mejoras
+        indicadas, podría tener impacto. Estimen el orden de magnitud
+        del costo de implementación.
+\end{enumerate}
+
+\TODO{Respondan aquí la Pregunta D1. Esta sección demuestra la
+profundidad de comprensión del equipo. Usen referencias bibliográficas.}
+
+%% ============================================================
+\section{Conclusiones}
+\label{sec:conclusions}
+%% ============================================================
+
+\subsubsection*{Pregunta~Cn1 \pts{6}}
+Redacten una sección de conclusiones que responda:
+\begin{enumerate}[label=(\alph*)]
+  \item ¿Lograron implementar teleoperación con sensado de fuerza
+        funcional entre los dos xArm Lite 6? ¿Con qué nivel de
+        desempeño (cuantifiquen)?
+  \item ¿Cuál fue el mayor desafío técnico encontrado y cómo lo resolvieron?
+  \item ¿Qué aprendizaje clave obtuvieron sobre la relación entre
+        el Jacobiano, los torques articulares y la fuerza cartesiana?
+  \item ¿Qué harían diferente si repitieran el proyecto?
+\end{enumerate}
+
+\TODO{Escriban aquí las conclusiones del equipo en forma de párrafos
+continuos (no lista). Extensión: 200--300 palabras.}
+
+%% ============================================================
+\section*{Agradecimientos}
+%% ============================================================
+
+\TODO{Agradezcan al Computational Robotics Lab, al Prof. Alberto Muñoz,
+y a cualquier persona o institución que haya apoyado su trabajo.}
+
+%% ============================================================
+%% BIBLIOGRAFÍA
+%% ============================================================
+\begin{thebibliography}{10}
+
+\bibitem{xarm_github}
+  UFACTORY, ``xArm-Python-SDK,''
+  GitHub repository, 2024.
+  [Online]. Available: \url{https://github.com/xArm-developer/xArm-Python-SDK}
+
+\bibitem{siciliano2009}
+  B. Siciliano, L. Sciavicco, L. Villani, G. Oriolo,
+  \textit{Robotics: Modelling, Planning and Control},
+  Springer, 2009.
+
+\bibitem{spong2006}
+  M.W. Spong, S. Hutchinson, M. Vidyasagar,
+  \textit{Robot Modeling and Control},
+  Wiley, 2006.
+
+\bibitem{hogan1985}
+  N. Hogan,
+  ``Impedance Control: An Approach to Manipulation,''
+  \textit{ASME J. Dyn. Sys., Meas., Control},
+  vol. 107, 1985.
+
+\bibitem{colgate1993}
+  J.E. Colgate, J.M. Brown,
+  ``Factors affecting the Z-width of a haptic display,''
+  in \textit{Proc. IEEE ICRA}, 1994, pp. 3205--3210.
+
+\bibitem{murray1994}
+  R.M. Murray, Z. Li, S.S. Sastry,
+  \textit{A Mathematical Introduction to Robotic Manipulation},
+  CRC Press, 1994.
+
+\bibitem{niemeyer2008}
+  G. Niemeyer, C. Preusche, G. Hirzinger,
+  ``Telerobotics,''
+  in \textit{Springer Handbook of Robotics},
+  Springer, 2008.
+
+\bibitem{thompson2001}
+  S. Thompson, I. Reid, \textbf{A. Muñoz}, D.W. Murray,
+  ``Using a stationary camera to improve the performance
+  of a teleoperated robot,''
+  \textit{IEEE Trans. Systems, Man \& Cybernetics-A},
+  vol. 31(1), pp. 74--82, 2001.
+
+\bibitem{ref9}
+  %% COMPLETAR: Citar un artículo IEEE de los últimos 5 años sobre
+  %% teleoperación con sensado de fuerza.
+  %% Buscar en IEEE Xplore: "force-sensing teleoperation robot arm 2020-2025"
+  A.~Autor, B.~Autor, ``Título del artículo,''
+  \textit{IEEE Trans. Robotics}, vol.~XX, no.~Y, pp.~ZZ--ZZ, 202X.
+
+\bibitem{ref10}
+  %% COMPLETAR: Citar un artículo IEEE reciente sobre estimación
+  %% de fuerza sin sensor externo (torque-based force estimation).
+  C.~Autor, D.~Autor, ``Título del artículo,''
+  in \textit{Proc. IEEE ICRA}, 202X, pp.~ZZ--ZZ.
+
+\end{thebibliography}
+
+%% ============================================================
+%% APÉNDICE — Rúbrica de Evaluación Completa
+%% ============================================================
+\appendix
+\section{Rúbrica de Evaluación}
+\label{app:rubrica}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.35\columnwidth}ccp{0.25\columnwidth}}
+  \toprule
+  \textbf{Pregunta / Criterio} & \textbf{Pts.} & \textbf{Mín.} & \textbf{Evidencia Requerida} \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Teoría y Fundamentos}} \\
+  T1: Jacobiano y singularidades xArm & 8 & 5 & Derivación + figura sing. \\
+  T2: Control de par calculado (CTC)  & 10 & 6 & Derivación + gráfica resp. escalón \\
+  T3: Control de impedancia           & 8 & 5 & Cálculo $K_{d,max}$ + tabla $K_d$ \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Arquitectura y Comunicación}} \\
+  A1: Diagrama de bloques completo    & 10 & 6 & Figura con señales dimensionadas \\
+  A2: Protocolo y métricas de red     & 8 & 5 & Tabla RTT/jitter + captura ping \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Sensado de Fuerza}} \\
+  F1: Estimador torque-fuerza         & 12 & 7 & Gráficas antes/después filtro \\
+  F2: Comparativa estrategias         & 8 & 5 & Tabla completada + justificación \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Control e Implementación}} \\
+  C1: Control del esclavo             & 10 & 6 & Código funcional + flowchart \\
+  C2: Feedback háptico en maestro     & 8 & 5 & Cálculo $\beta_{max}$ + código \\
+  I1: Setup y configuración xArm SDK  & 10 & 6 & Documentación reproducible \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Resultados Experimentales}} \\
+  E1: Setup y descripción experimentos & 6 & 4 & Tabla hardware + descripción \\
+  E2: Error de seguimiento (6 joints)  & 12 & 7 & Gráficas + tabla métricas \\
+  E3: Estimación y validación fuerza   & 14 & 9 & Gráficas + validación báscula \\
+  E4: Análisis estabilidad háptica     & 8 & 5 & Prueba hard-wall + $\beta_{crit}$ \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Análisis y Conclusiones}} \\
+  D1: Discusión limitaciones y EA     & 8 & 5 & Citas IEEE + comparativa cuant. \\
+  Cn1: Conclusiones                   & 6 & 4 & Párrafos 200--300 palabras \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Calidad del Documento IEEE}} \\
+  Formato y ortografía                & 4 & 2 & LaTeX compilable, sin errores \\
+  Figuras con pie de figura y etiquetas & 4 & 2 & Mín. 8 figuras propias \\
+  Referencias (mín. 10, 2 recientes)  & 4 & 2 & BibTeX correcto \\
+  \midrule
+  \rowcolor{tec_blue!15}
+  \textbf{TOTAL} & \textbf{160} & \textbf{96} & \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{rubricbox}[Criterio de aprobación]
+  \begin{itemize}[itemsep=0.2em]
+    \item Score $\geq 96$ puntos sobre 160 (60\%).
+    \item La sección E3 debe incluir \textbf{evidencia experimental real}
+          con los xArm físicos (no simulación).
+    \item El estimador de fuerza debe mostrar coherencia con los torques
+          articulares medidos: $\bm{\tau}_{meas} \approx \bm{J}^\top \hat{\bm{F}}_{ext}$.
+    \item El documento LaTeX debe compilar sin errores.
+    \item Mínimo \textbf{8 figuras originales} (no tomadas de internet).
+  \end{itemize}
+\end{rubricbox}
+
+\section{Guía de Entrega}
+\label{app:entrega}
+
+\begin{todobox}[Checklist de entrega]
+  Antes de entregar, verifiquen que el repositorio/zip contiene:
+  \begin{enumerate}[label=$\square$, itemsep=0.3em]
+    \item \texttt{reporte.pdf} — artículo IEEE compilado (este documento completo)
+    \item \texttt{reporte.tex} — fuente LaTeX del artículo
+    \item \texttt{master\_control.py} — código del robot Maestro
+    \item \texttt{slave\_control.py} — código del robot Esclavo
+    \item \texttt{force\_estimator.py} — módulo de estimación de fuerza
+    \item \texttt{net\_test.py} — herramienta de test de red (adaptado para xArm)
+    \item \texttt{data/} — carpeta con los archivos \texttt{.csv} o \texttt{.npy}
+          de cada ensayo experimental (mínimo 3 ensayos)
+    \item \texttt{figures/} — imágenes originales (PNG/PDF) usadas en el reporte
+    \item \texttt{video\_demo.mp4} — video de 60--120 s mostrando el sistema
+          funcionando en tiempo real con ambos xArm
+    \item \texttt{README.md} — instrucciones para reproducir los experimentos
+  \end{enumerate}
+\end{todobox}
+
+\begin{rubricbox}[Video de demostración — Puntos extra]
+  Un video de demostración de alta calidad que muestre:
+  \begin{itemize}[itemsep=0.2em]
+    \item El operador moviendo el Maestro y el Esclavo replicando el movimiento.
+    \item Un evento de contacto claro con las gráficas de fuerza en pantalla.
+    \item La reacción háptica perceptible en el Maestro.
+  \end{itemize}
+  Un video bien editado (subtítulos, señales anotadas) puede obtener
+  hasta \textbf{+10 puntos extra} a criterio del profesor.
+\end{rubricbox}
+
+\end{document}
+%% ============================================================
+%% FIN DEL DOCUMENTO
+%% ============================================================
