@@ -1,4 +1,27 @@
-log/*
-build/*
-install/*
-.vscode/*
+# Colcon build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+*.egg
+
+# PlatformIO
+.pio/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ROS2 generated
+*.log
+colcon-build/
