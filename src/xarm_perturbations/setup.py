@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+import os
+from glob import glob
 
 package_name = 'xarm_perturbations'
 
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,11 +27,11 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            # TE300XB-5: CTC vs PID under perturbations
+            'ik_reference_generator = xarm_perturbations.ik_reference_generator:main',
+            'joint_space_controller = xarm_perturbations.joint_space_controller:main',
             'perturbation_injector = xarm_perturbations.perturbation_injector:main',
-            'circle_maker = xarm_perturbations.circle_maker:main',
-            'trajectory_generator = xarm_perturbations.trajectory_generator:main',
-            'position_controller = xarm_perturbations.position_controller:main',
-            'evaluator = xarm_perturbations.evaluator:main',
+            'trial_logger = xarm_perturbations.trial_logger:main',
         ],
     },
 

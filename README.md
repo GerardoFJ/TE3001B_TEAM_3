@@ -1,234 +1,162 @@
-# TE3001B_TEAM_4
-TE3001B Team 4 Repository
+# TE3001B — Team 3
 
----
+**Fundamentacion de Robotica** — Tecnologico de Monterrey, 2026
 
-## xarm_perturbationsV2
+ROS 2 (Humble) workspace for xArm Lite 6 control, teleoperation, and embedded motor control.
 
-Paquete ROS 2 para el reto **Robotics Control Challenge 4.1**: evaluación y comparación de dos controladores en espacio articular aplicados al brazo xArm Lite 6, con y sin perturbaciones externas.
-
-### Descripción general
-
-El paquete implementa una cadena completa de control y análisis:
+## Repository Structure
 
 ```
-IK Reference Generator  →  Joint-Space Controller  →  Perturbation Injector  →  MoveIt Servo  →  xArm Lite 6
+TE3001B_TEAM_3/
+├── src/                          # ROS 2 packages
+│   ├── Challenges/               # Course challenges
+│   │   ├── custom_interfaces/    # SetProcessBool.srv definition
+│   │   ├── main_pkg/             # Basic publisher/subscriber (C++)
+│   │   └── motor_control/        # DC motor PID simulation
+│   ├── lite6_move/               # MoveIt Cartesian path planner for Lite6
+│   ├── s0s1_gazebo/              # SO101 gripper MuJoCo simulation + URDF
+│   ├── xarm_perturbations/       # CTC vs PID joint-space control under perturbations
+│   ├── xarm_teleops/             # Master-slave teleoperation with force feedback
+│   ├── uros_ws/                  # Micro-ROS workspace (ESP32 motor control)
+│   └── Retosemana3/              # Week 3 challenge — teleoperation data analysis
+├── MiniReto_PIDMotor/            # PlatformIO firmware — ESP32 motor PWM via micro-ROS
+└── README.md
 ```
 
-### Nodos principales
+## Packages
 
-| Nodo | Ejecutable | Descripción |
-|------|-----------|-------------|
-| `ik_reference_generator` | `ik_reference_generator` | Genera referencias articulares (q, q̇, q̈) y cartesianas (p_des) a partir de cinemática inversa diferencial con control de nulo. Publica trayectorias punto a punto con fases de dwell. |
-| `joint_space_controller` | `joint_space_controller` | Controlador dual en espacio articular. Soporta dos modos: **PID** (con anti-windup integral) y **CTC** (Control por Torque Computado, basado en modelo dinámico con matriz de inercia, torques gravitacionales y fricción). Publica velocidades cartesianas vía Jacobiano a MoveIt Servo. |
-| `perturbation_injector` | `perturbation_injector` | Inyecta perturbaciones sobre la señal de control. Modos disponibles: **off** (sin perturbación), **sine** (disturbancia senoidal) y **gaussian** (ruido gaussiano de media cero). Puede operar standalone o en modo relay (suma la perturbación a la salida del controlador). |
+### Challenges (`src/Challenges/`)
 
-### Controladores implementados
+| Package | Type | Description |
+|---------|------|-------------|
+| `custom_interfaces` | ament_cmake | `SetProcessBool.srv` service definition |
+| `main_pkg` | ament_cmake | `sender` and `process` nodes — basic ROS 2 messaging |
+| `motor_control` | ament_python | DC motor simulation with PID controller (`dc_motor`, `set_point`, `controller`) |
 
-**PID en espacio articular**
-- Ley de control: `τ = -(Kp·e + Kd·ė + Ki·∫e)`
-- Anti-windup con saturación integral
-- Ganancias por defecto: `Kp = diag(15,15,15,10,8,5)`, `Kd = diag(5,5,5,4,3,2)`, `Ki = diag(2,2,2,1,1,0.5)`
+### xArm Lite 6 Packages
 
-**CTC (Computed Torque Control)**
-- Linealización por realimentación: `v = q̈_des - Kp·e - Kd·ė`
-- Ley de torque: `τ = M(q)·v + G(q) + F(q̇)`
-- Ganancias por defecto: `Kp = diag(30,30,30,20,15,10)`, `Kd = diag(10,10,10,8,6,4)`
+| Package | Type | Description |
+|---------|------|-------------|
+| `lite6_move` | ament_cmake | MoveIt Cartesian path planning for Lite 6 |
+| `xarm_perturbations` | ament_python | Joint-space CTC vs PID controllers with perturbation analysis |
+| `xarm_teleops` | ament_python | Two-computer master-slave teleoperation with haptic force feedback |
 
-### Escenarios de prueba (trials)
+### Simulation
 
-| Trial | Controlador | Perturbación |
-|-------|-------------|--------------|
-| `trial_ctc_nopert` | CTC | Sin perturbación |
-| `trial_pdpid_nopert` | PID | Sin perturbación |
-| `trial_ctc_pert` | CTC | Gaussiana (eje X, σ=0.01 m/s) |
-| `trial_pdpid_pert` | PID | Gaussiana (eje X, σ=0.01 m/s) |
+| Package | Type | Description |
+|---------|------|-------------|
+| `s0s1_gazebo` | ament_cmake | SO101 gripper MuJoCo simulation with ROS 2 bridge and PID control |
 
-Los CSVs de cada prueba se guardan en:
-```
-src/xarm_perturbationsV2/xarm_perturbations/results/<trial_name>/
-```
+### Embedded / Micro-ROS
 
-### Uso
+| Package | Type | Description |
+|---------|------|-------------|
+| `uros_ws` | micro-ROS | ESP32 motor control via micro-ROS agent |
+| `MiniReto_PIDMotor` | PlatformIO | ESP32 firmware for PWM motor control (micro-ROS subscriber) |
 
-> **Una vez por sesión** (en cada terminal antes de correr cualquier nodo):
-> ```bash
-> source ~/dev_ws/install/setup.bash
-> ```
+## Build
 
----
+ROS 2 runs inside Docker. Build inside the container:
 
-**Terminal 0:**
 ```bash
+cd ~/dev_ws
 colcon build
+source install/setup.bash
 ```
 
+For PlatformIO firmware (`MiniReto_PIDMotor/`):
+
 ```bash
+pio run
+pio run --target upload
+```
+
+## xarm_perturbationsV2 — CTC vs PID Control Challenge
+
+Joint-space control comparison on xArm Lite 6 with and without external perturbations.
+
+**Pipeline:**
+```
+IK Reference Generator → Joint-Space Controller → Perturbation Injector → MoveIt Servo → xArm Lite 6
+```
+
+**Nodes:**
+- `ik_reference_generator` — IK-based joint reference trajectories (q, dq, ddq)
+- `joint_space_controller` — PID or CTC (Computed Torque Control) in joint space
+- `perturbation_injector` — Sine or Gaussian disturbance injection
+
+**Controllers:**
+- **PID:** `tau = -(Kp*e + Kd*de + Ki*int_e)` with anti-windup
+- **CTC:** `tau = M(q)*v + G(q) + F(dq)` with feedback linearization
+
+**Trials:**
+
+| Trial | Controller | Perturbation |
+|-------|------------|--------------|
+| `trial_ctc_nopert` | CTC | None |
+| `trial_pdpid_nopert` | PID | None |
+| `trial_ctc_pert` | CTC | Gaussian (x-axis, sigma=0.01 m/s) |
+| `trial_pdpid_pert` | PID | Gaussian (x-axis, sigma=0.01 m/s) |
+
+**Usage:**
+
+```bash
+# Terminal 0: Launch MoveIt Servo
 ros2 launch xarm_moveit_servo lite6_moveit_servo_realmove.launch.py robot_ip:=192.168.1.175
-```
 
----
-
-#### Trial 1 — CTC sin perturbaciones
-
-**Terminal 1:**
-```bash
+# Terminal 1: Reference generator
 ros2 run xarm_perturbations ik_reference_generator --ros-args \
   -p wz:=2.5 -p lam:=0.015 -p k_task:=14.0 -p k_null:=1.5 \
   -p dwell_sec:=1.5 -p segment_sec:=2.0 -p control_rate_hz:=200.0
-```
 
-**Terminal 2:**
-```bash
+# Terminal 2: Controller (change controller_type and trial_name per trial)
 ros2 run xarm_perturbations joint_space_controller --ros-args \
   -p controller_type:=ctc \
   -p output_topic:=/servo_server/delta_twist_cmds \
   -p trial_name:=trial_ctc_nopert
-```
 
----
-
-#### Trial 2 — PID sin perturbaciones
-
-**Terminal 1:**
-```bash
-ros2 run xarm_perturbations ik_reference_generator --ros-args \
-  -p wz:=2.5 -p lam:=0.015 -p k_task:=14.0 -p k_null:=1.5 \
-  -p dwell_sec:=1.5 -p segment_sec:=2.0 -p control_rate_hz:=200.0
-```
-
-**Terminal 2:**
-```bash
-ros2 run xarm_perturbations joint_space_controller --ros-args \
-  -p controller_type:=pid \
-  -p output_topic:=/servo_server/delta_twist_cmds \
-  -p trial_name:=trial_pdpid_nopert
-```
-
----
-
-#### Trial 3 — CTC con perturbaciones
-
-**Terminal 1:**
-```bash
-ros2 run xarm_perturbations ik_reference_generator --ros-args \
-  -p wz:=2.5 -p lam:=0.015 -p k_task:=14.0 -p k_null:=1.5 \
-  -p dwell_sec:=1.5 -p segment_sec:=2.0 -p control_rate_hz:=200.0
-```
-
-**Terminal 2:**
-```bash
-ros2 run xarm_perturbations joint_space_controller --ros-args \
-  -p controller_type:=ctc \
-  -p output_topic:=/controller_output \
-  -p trial_name:=trial_ctc_pert
-```
-
-**Terminal 3:**
-```bash
+# Terminal 3 (perturbation trials only):
 ros2 run xarm_perturbations perturbation_injector --ros-args \
   -p input_topic:=/controller_output \
   -p output_topic:=/servo_server/delta_twist_cmds \
-  -p pub_reliability:=reliable \
-  -p enabled:=true \
-  -p mode:=gaussian \
-  -p gauss_std_linear:=0.01 \
-  -p gauss_axis:=x \
-  -p debug:=true
+  -p enabled:=true -p mode:=gaussian \
+  -p gauss_std_linear:=0.01 -p gauss_axis:=x
 ```
 
----
+Results and analysis: `src/xarm_perturbations/analysis/`
 
-#### Trial 4 — PID con perturbaciones
+## xarm_teleops — Teleoperation with Force Feedback
 
-**Terminal 1:**
-```bash
-ros2 run xarm_perturbations ik_reference_generator --ros-args \
-  -p wz:=2.5 -p lam:=0.015 -p k_task:=14.0 -p k_null:=1.5 \
-  -p dwell_sec:=1.5 -p segment_sec:=2.0 -p control_rate_hz:=200.0
+Master-slave teleoperation between two xArm Lite 6 robots over UDP.
+
+```
+PC Master                           PC Slave
+┌──────────────────┐   UDP 5005   ┌──────────────────┐
+│ master_control   │ ───────────► │ slave_control    │
+│                  │ ◄──────────  │                  │
+│  q_master →      │   UDP 5006  │  → ForceEstimator│
+│  ← F_ext, tau    │  (F_ext, τ) │  ← tau_meas      │
+└────────┬─────────┘             └────────┬─────────┘
+         │ Ethernet                       │ Ethernet
+   xArm Lite 6 (Master)           xArm Lite 6 (Slave)
 ```
 
-**Terminal 2:**
-```bash
-ros2 run xarm_perturbations joint_space_controller --ros-args \
-  -p controller_type:=pid \
-  -p output_topic:=/controller_output \
-  -p trial_name:=trial_pdpid_pert
-```
-
-**Terminal 3:**
-```bash
-ros2 run xarm_perturbations perturbation_injector --ros-args \
-  -p input_topic:=/controller_output \
-  -p output_topic:=/servo_server/delta_twist_cmds \
-  -p pub_reliability:=reliable \
-  -p enabled:=true \
-  -p mode:=gaussian \
-  -p gauss_std_linear:=0.01 \
-  -p gauss_axis:=x \
-  -p debug:=true
-```
-
----
-
-#### Verificar resultados
+**Force estimation:** `F_ext = (J^T)^+ * (tau_meas - tau_gravity)`
 
 ```bash
-ls ~/dev_ws/src/xarm_ros2/xarm_perturbations/results/
+# Slave PC (first):
+python3 src/slave_control.py
+
+# Master PC:
+python3 src/master_control.py
 ```
 
-### Safety features
+## Safety
 
-- Saturación de torque: ±10 N·m por articulación
-- Saturación de velocidad cartesiana: 0.10 m/s por eje
-- Emergency stop si el error articular supera 0.8 rad (con grace period de 8 s al inicio)
+- Torque saturation: +/-10 Nm per joint
+- Cartesian velocity saturation: 0.10 m/s per axis
+- Emergency stop on joint error > 0.8 rad (8 s grace period at startup)
 
----
+## License
 
-## Análisis y Reporte
-
-> **Reporte:** [ReporteTeam4.pdf](src/xarm_perturbationsV2/xarm_perturbations/analysis/ReporteTeam4.pdf)
-
-Las gráficas y el reporte de este trabajo se encuentran en:
-
-```
-src/xarm_perturbationsV2/xarm_perturbations/analysis/
-├── ReporteTeam4.pdf
-├── plot_trials.py                  # Script que genera todas las gráficas
-└── plots/
-    ├── joint_tracking_ctc_nopert.png     # Seguimiento articular — CTC sin pert.
-    ├── joint_tracking_pid_nopert.png     # Seguimiento articular — PID sin pert.
-    ├── joint_tracking_ctc_pert.png       # Seguimiento articular — CTC con pert.
-    ├── joint_tracking_pid_pert.png       # Seguimiento articular — PID con pert.
-    ├── taskspace_xyz_ctc_nopert.png      # Seguimiento XYZ — CTC sin pert.
-    ├── taskspace_xyz_pid_nopert.png      # Seguimiento XYZ — PID sin pert.
-    ├── taskspace_xyz_ctc_pert.png        # Seguimiento XYZ — CTC con pert.
-    ├── taskspace_xyz_pid_pert.png        # Seguimiento XYZ — PID con pert.
-    ├── path_3d_ctc_nopert.png            # Proyecciones de trayectoria — CTC sin pert.
-    ├── path_3d_pid_nopert.png            # Proyecciones de trayectoria — PID sin pert.
-    ├── path_3d_ctc_pert.png              # Proyecciones de trayectoria — CTC con pert.
-    ├── path_3d_pid_pert.png              # Proyecciones de trayectoria — PID con pert.
-    ├── ee_error_ctc_nopert.png           # Error de efector final — CTC sin pert.
-    ├── ee_error_pid_nopert.png           # Error de efector final — PID sin pert.
-    ├── ee_error_ctc_pert.png             # Error de efector final — CTC con pert.
-    ├── ee_error_pid_pert.png             # Error de efector final — PID con pert.
-    ├── phase_portraits_ctc_nopert.png    # Retratos de fase — CTC sin pert.
-    ├── phase_portraits_pid_nopert.png    # Retratos de fase — PID sin pert.
-    ├── phase_portraits_ctc_pert.png      # Retratos de fase — CTC con pert.
-    ├── phase_portraits_pid_pert.png      # Retratos de fase — PID con pert.
-    ├── comparison_sin_perturbaciones.png # CTC vs PID sin perturbación
-    ├── comparison_con_perturbaciones.png # CTC vs PID con perturbación
-    └── summary_table.png                 # Tabla resumen de métricas (RMSE, Max, WP%)
-```
-
-### Métricas reportadas
-
-- **Joint RMSE / Max** — Error cuadrático medio y error máximo por articulación [mrad]
-- **EE RMSE / Max** — Error del efector final en norma Euclidiana [mm]
-- **Waypoint Success (%)** — Porcentaje de waypoints alcanzados con error < 5 mm en el último 50% del dwell
-
-Para regenerar las gráficas:
-
-```bash
-python3 src/xarm_perturbationsV2/xarm_perturbations/analysis/plot_trials.py
-```
+See [LICENSE](LICENSE).
