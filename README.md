@@ -15,8 +15,7 @@ TE3001B_TEAM_3/
 │   │   └── motor_control/        # DC motor PID simulation
 │   ├── lite6_move/               # MoveIt Cartesian path planner for Lite6
 │   ├── s0s1_gazebo/              # SO101 gripper MuJoCo simulation + URDF
-│   ├── xarm_perturbations/       # Trajectory tracking with perturbation injection (V1)
-│   ├── xarm_perturbationsV2/     # CTC vs PID joint-space control under perturbations
+│   ├── xarm_perturbations/       # CTC vs PID joint-space control under perturbations
 │   ├── xarm_teleops/             # Master-slave teleoperation with force feedback
 │   ├── uros_ws/                  # Micro-ROS workspace (ESP32 motor control)
 │   └── Retosemana3/              # Week 3 challenge — teleoperation data analysis
@@ -39,8 +38,7 @@ TE3001B_TEAM_3/
 | Package | Type | Description |
 |---------|------|-------------|
 | `lite6_move` | ament_cmake | MoveIt Cartesian path planning for Lite 6 |
-| `xarm_perturbations` | ament_python | Trajectory tracking + perturbation injection (circle, position control, evaluator) |
-| `xarm_perturbationsV2` | ament_python | Joint-space CTC vs PID controllers with perturbation analysis |
+| `xarm_perturbations` | ament_python | Joint-space CTC vs PID controllers with perturbation analysis |
 | `xarm_teleops` | ament_python | Two-computer master-slave teleoperation with haptic force feedback |
 
 ### Simulation
@@ -125,7 +123,7 @@ ros2 run xarm_perturbations perturbation_injector --ros-args \
   -p gauss_std_linear:=0.01 -p gauss_axis:=x
 ```
 
-Results and analysis: `src/xarm_perturbationsV2/xarm_perturbations/analysis/`
+Results and analysis: `src/xarm_perturbations/analysis/`
 
 ## xarm_teleops — Teleoperation with Force Feedback
 
