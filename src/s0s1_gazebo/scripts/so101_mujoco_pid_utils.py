@@ -21,6 +21,12 @@ try:
 except Exception:
     CommandLogger = None  # type: ignore
 
+# State logger for actual vs desired position recording
+try:
+    from state_logger import StateLogger
+except Exception:
+    StateLogger = None  # type: ignore
+
 
 class _PlotterProto(Protocol):
     def sample(self, m, d, now: float | None = None) -> None: ...
@@ -103,13 +109,17 @@ def move_to_pose_pid(
     pid: JointPID | None = None,
     perturb: PerturbationModel | None = None,
     plotter: Optional[_PlotterProto] = None,
-    # NEW: logger for ROS/Gazebo replay (writes commanded reference as CSV)
+    # logger for ROS/Gazebo replay (writes commanded reference as CSV)
     logger: Optional["CommandLogger"] = None,
+    # state_logger records actual vs desired positions for analysis
+    state_logger=None,
+    phase: str = "move",
 ):
     """
     PID torque control with optional perturbations.
     Interpolates from current pose to target over 'duration' seconds.
     Logs the commanded reference (not measured state) if logger is provided.
+    Logs actual vs desired state if state_logger is provided.
     """
     if pid is None:
         pid = build_default_pid(joint_names)
@@ -155,7 +165,7 @@ def move_to_pose_pid(
         tau_dist = perturb.apply_joint_torques(t=t, dt=m.opt.timestep)
         tau_total = {jn: float(tau_pid[jn] + tau_dist[jn]) for jn in joint_names}
 
-        # NEW: log commanded reference for Gazebo replay
+        # log commanded reference for Gazebo replay
         if logger is not None:
             cmd_deg_0_100 = _cmd_dict_deg_for_logging(q_des, target_pose_deg)
             # If you want gripper to interpolate, do it here:
@@ -164,6 +174,14 @@ def move_to_pose_pid(
 
         apply_joint_torques_qfrc(m, d, joint_names, tau_total)
         step_sim(m, d, viewer, realtime=realtime, plotter=plotter)
+
+        # log actual vs desired state for analysis
+        if state_logger is not None:
+            q_actual, _ = get_q_qd_dict(m, d, joint_names)
+            actual_deg = {jn: float(np.rad2deg(q_actual[jn])) for jn in joint_names}
+            desired_deg = {jn: float(np.rad2deg(q_des[jn])) for jn in joint_names}
+            state_logger.log(t=float(d.time), phase=phase,
+                             actual_deg=actual_deg, desired_deg=desired_deg)
 
 
 def hold_position_pid(
@@ -175,12 +193,16 @@ def hold_position_pid(
     pid: JointPID | None = None,
     perturb: PerturbationModel | None = None,
     plotter: Optional[_PlotterProto] = None,
-    # NEW: logger for ROS/Gazebo replay
+    # logger for ROS/Gazebo replay
     logger: Optional["CommandLogger"] = None,
+    # state_logger records actual vs desired positions for analysis
+    state_logger=None,
+    phase: str = "hold",
 ):
     """
     Holds a fixed target pose with PID, injecting optional disturbances.
     Logs the commanded reference each step if logger is provided.
+    Logs actual vs desired state if state_logger is provided.
     """
     if pid is None:
         pid = build_default_pid(joint_names)
@@ -202,10 +224,18 @@ def hold_position_pid(
         tau_dist = perturb.apply_joint_torques(t=t, dt=m.opt.timestep)
         tau_total = {jn: float(tau_pid[jn] + tau_dist[jn]) for jn in joint_names}
 
-        # NEW: log commanded reference for Gazebo replay
+        # log commanded reference for Gazebo replay
         if logger is not None:
             cmd_deg_0_100 = _cmd_dict_deg_for_logging(q_des, hold_pose_deg)
             logger.log(t=t, cmd_deg_0_100=cmd_deg_0_100)
 
         apply_joint_torques_qfrc(m, d, joint_names, tau_total)
         step_sim(m, d, viewer, realtime=realtime, plotter=plotter)
+
+        # log actual vs desired state for analysis
+        if state_logger is not None:
+            q_actual, _ = get_q_qd_dict(m, d, joint_names)
+            actual_deg = {jn: float(np.rad2deg(q_actual[jn])) for jn in joint_names}
+            desired_deg = {jn: float(np.rad2deg(q_des[jn])) for jn in joint_names}
+            state_logger.log(t=float(d.time), phase=phase,
+                             actual_deg=actual_deg, desired_deg=desired_deg)

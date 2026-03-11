@@ -1,0 +1,21 @@
+combo_id,family,label,kp_scale,ki_scale,kd_scale,rms_move_error_deg,rms_hold_error_deg,max_overshoot_deg,settling_time_s
+P1,P,"Very low Kp — compliant, sluggish",0.1,0.0,0.0,2.508,3.095,4.372,0.0
+P2,P,"Low Kp — slow, large steady-state error",0.3,0.0,0.0,2.474,3.061,4.372,0.0
+P3,P,Medium Kp — moderate stiffness,0.6,0.0,0.0,2.429,3.012,4.372,0.0
+P4,P,High Kp — fast but lightly oscillatory,1.0,0.0,0.0,2.246,2.494,4.372,0.0
+P5,P,"Very high Kp — fast, persistent ringing",2.0,0.0,0.0,1.481,1.251,4.372,0.0
+PD1,PD,"Low Kp + low Kd — slow, well-damped",0.3,0.0,0.5,2.463,3.061,4.372,0.0
+PD2,PD,"Medium Kp + low Kd — faster, light damping",0.6,0.0,0.5,2.422,3.012,4.372,0.0
+PD3,PD,Base Kp + base Kd — balanced reference,1.0,0.0,1.0,2.214,2.492,4.372,0.0
+PD4,PD,"High Kp + medium Kd — fast, good settling",1.5,0.0,1.5,1.809,1.666,4.372,0.0
+PD5,PD,"High Kp + high Kd — aggressive, may chatter",2.0,0.0,3.0,1.457,1.249,4.372,0.0
+PI1,PI,"Low Kp + low Ki — slow, bias removal intact",0.3,0.5,0.0,2.473,3.06,4.372,0.0
+PI2,PI,"Medium Kp + low Ki — balanced, minimal windup",0.6,0.5,0.0,2.428,3.011,4.372,0.0
+PI3,PI,Base Kp + base Ki — reference configuration,1.0,1.0,0.0,2.235,2.459,4.372,0.0
+PI4,PI,"High Kp + high Ki — aggressive, windup risk",1.5,2.0,0.0,1.829,1.633,4.372,0.0
+PI5,PI,Very high Ki — severe windup / instability study,1.0,4.0,0.0,2.203,2.353,4.372,0.0
+PID1,PID,Conservative — low all gains,0.3,0.3,0.5,2.463,3.06,4.372,0.0
+PID2,PID,Moderate — balanced (no integral windup risk),0.8,0.5,1.0,2.37,2.802,4.372,0.0
+PID3,PID,Base — default well-tuned reference,1.0,1.0,1.0,2.203,2.458,4.372,0.0
+PID4,PID,"Kd-dominant — high damping, low integral",1.5,0.3,2.5,1.788,1.661,4.372,0.0
+PID5,PID,Aggressive full PID — best disturbance rejection,1.5,1.5,2.0,1.788,1.64,4.372,0.0
