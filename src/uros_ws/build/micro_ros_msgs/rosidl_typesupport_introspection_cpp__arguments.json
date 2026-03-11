@@ -1,11 +1,11 @@
 {
   "package_name": "micro_ros_msgs",
-  "output_dir": "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_typesupport_introspection_cpp/micro_ros_msgs",
+  "output_dir": "/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_typesupport_introspection_cpp/micro_ros_msgs",
   "template_dir": "/opt/ros/humble/share/rosidl_typesupport_introspection_cpp/resource",
   "idl_tuples": [
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs:msg/Graph.idl",
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs:msg/Node.idl",
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs:msg/Entity.idl"
+    "/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs:msg/Graph.idl",
+    "/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs:msg/Node.idl",
+    "/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs:msg/Entity.idl"
   ],
   "target_dependencies": [
     "/opt/ros/humble/lib/rosidl_typesupport_introspection_cpp/rosidl_typesupport_introspection_cpp",
@@ -16,8 +16,8 @@
     "/opt/ros/humble/share/rosidl_typesupport_introspection_cpp/resource/msg__type_support.cpp.em",
     "/opt/ros/humble/share/rosidl_typesupport_introspection_cpp/resource/srv__rosidl_typesupport_introspection_cpp.hpp.em",
     "/opt/ros/humble/share/rosidl_typesupport_introspection_cpp/resource/srv__type_support.cpp.em",
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs/msg/Graph.idl",
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs/msg/Node.idl",
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs/msg/Entity.idl"
+    "/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs/msg/Graph.idl",
+    "/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs/msg/Node.idl",
+    "/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_adapter/micro_ros_msgs/msg/Entity.idl"
   ]
 }

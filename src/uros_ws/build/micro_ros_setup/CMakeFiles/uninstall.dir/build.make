@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup
+CMAKE_SOURCE_DIR = /home/luxfero/uros_ws/src/micro_ros_setup
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup
+CMAKE_BINARY_DIR = /home/luxfero/uros_ws/build/micro_ros_setup
 
 # Utility rule file for uninstall.
 
@@ -78,6 +78,6 @@ CMakeFiles/uninstall.dir/clean:
 .PHONY : CMakeFiles/uninstall.dir/clean
 
 CMakeFiles/uninstall.dir/depend:
-	cd /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup /workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/luxfero/uros_ws/build/micro_ros_setup && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/luxfero/uros_ws/src/micro_ros_setup /home/luxfero/uros_ws/src/micro_ros_setup /home/luxfero/uros_ws/build/micro_ros_setup /home/luxfero/uros_ws/build/micro_ros_setup /home/luxfero/uros_ws/build/micro_ros_setup/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/uninstall.dir/depend
 

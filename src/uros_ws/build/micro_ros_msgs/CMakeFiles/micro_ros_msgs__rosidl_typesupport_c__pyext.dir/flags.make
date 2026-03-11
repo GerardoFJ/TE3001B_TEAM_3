@@ -4,7 +4,7 @@
 # compile C with /usr/bin/cc
 C_DEFINES = -DRCUTILS_ENABLE_FAULT_INJECTION -DROS_PACKAGE_NAME=\"micro_ros_msgs\" -Dmicro_ros_msgs__rosidl_typesupport_c__pyext_EXPORTS
 
-C_INCLUDES = -I/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_generator_c -I/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_generator_py -I/usr/include/python3.10 -I/opt/ros/humble/include/rmw -isystem /opt/ros/humble/include/rosidl_runtime_c -isystem /opt/ros/humble/include/rosidl_typesupport_c -isystem /opt/ros/humble/include/rosidl_typesupport_interface -isystem /opt/ros/humble/include/rcutils
+C_INCLUDES = -I/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_generator_c -I/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_generator_py -I/usr/include/python3.10 -I/opt/ros/humble/include/rmw -isystem /opt/ros/humble/include/rosidl_runtime_c -isystem /opt/ros/humble/include/rosidl_typesupport_c -isystem /opt/ros/humble/include/rosidl_typesupport_interface -isystem /opt/ros/humble/include/rcutils
 
 C_FLAGS = -fPIC -Wall -Wextra -std=gnu99
 

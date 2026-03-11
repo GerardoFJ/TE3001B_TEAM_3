@@ -4,7 +4,7 @@
 # compile C with /usr/bin/cc
 C_DEFINES = -DRCUTILS_ENABLE_FAULT_INJECTION -DROSIDL_GENERATOR_C_BUILDING_DLL_micro_ros_msgs -DROS_PACKAGE_NAME=\"micro_ros_msgs\"
 
-C_INCLUDES = -I/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_generator_c -isystem /opt/ros/humble/include/rosidl_runtime_c -isystem /opt/ros/humble/include/rcutils -isystem /opt/ros/humble/include/rosidl_typesupport_interface
+C_INCLUDES = -I/home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_generator_c -isystem /opt/ros/humble/include/rosidl_runtime_c -isystem /opt/ros/humble/include/rcutils -isystem /opt/ros/humble/include/rosidl_typesupport_interface
 
 C_FLAGS = -fPIC -Wall -std=gnu11
 

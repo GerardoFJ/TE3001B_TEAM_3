@@ -1,0 +1,2 @@
+Invoking command in '/home/luxfero/uros_ws/build/micro_ros_setup': /usr/bin/cmake /home/luxfero/uros_ws/src/micro_ros_setup -DCMAKE_INSTALL_PREFIX=/home/luxfero/uros_ws/install/micro_ros_setup
+Invoked command in '/home/luxfero/uros_ws/build/micro_ros_setup' returned '1': /usr/bin/cmake /home/luxfero/uros_ws/src/micro_ros_setup -DCMAKE_INSTALL_PREFIX=/home/luxfero/uros_ws/install/micro_ros_setup

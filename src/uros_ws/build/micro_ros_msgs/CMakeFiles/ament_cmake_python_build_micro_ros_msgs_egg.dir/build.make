@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /workspace/TE3001B_TEAM_3/src/uros_ws/src/uros/micro_ros_msgs
+CMAKE_SOURCE_DIR = /home/luxfero/uros_ws/src/uros/micro_ros_msgs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs
+CMAKE_BINARY_DIR = /home/luxfero/uros_ws/build/micro_ros_msgs
 
 # Utility rule file for ament_cmake_python_build_micro_ros_msgs_egg.
 
@@ -67,7 +67,7 @@ include CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg.dir/compiler_depe
 include CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg.dir/progress.make
 
 CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg:
-	cd /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/ament_cmake_python/micro_ros_msgs && /usr/bin/python3 setup.py egg_info
+	cd /home/luxfero/uros_ws/build/micro_ros_msgs/ament_cmake_python/micro_ros_msgs && /usr/bin/python3 setup.py egg_info
 
 ament_cmake_python_build_micro_ros_msgs_egg: CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg
 ament_cmake_python_build_micro_ros_msgs_egg: CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg.dir/build.make
@@ -82,6 +82,6 @@ CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg.dir/clean:
 .PHONY : CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg.dir/clean
 
 CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg.dir/depend:
-	cd /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /workspace/TE3001B_TEAM_3/src/uros_ws/src/uros/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/src/uros/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/luxfero/uros_ws/build/micro_ros_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/luxfero/uros_ws/src/uros/micro_ros_msgs /home/luxfero/uros_ws/src/uros/micro_ros_msgs /home/luxfero/uros_ws/build/micro_ros_msgs /home/luxfero/uros_ws/build/micro_ros_msgs /home/luxfero/uros_ws/build/micro_ros_msgs/CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/ament_cmake_python_build_micro_ros_msgs_egg.dir/depend
 

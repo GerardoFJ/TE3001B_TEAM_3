@@ -1,0 +1,3 @@
+[console_scripts]
+input_node = motor_control_pkg.input_node:main
+

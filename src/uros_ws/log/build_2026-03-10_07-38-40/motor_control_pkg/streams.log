@@ -1,0 +1,22 @@
+[0.436s] Invoking command in '/home/luxfero/uros_ws/src/motor_control_pkg': PYTHONPATH=/home/luxfero/uros_ws/build/motor_control_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/luxfero/uros_ws/install/motor_control_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/motor_control_pkg build --build-base /home/luxfero/uros_ws/build/motor_control_pkg/build install --record /home/luxfero/uros_ws/build/motor_control_pkg/install.log --single-version-externally-managed install_data
+[0.578s] running egg_info
+[0.578s] writing ../../build/motor_control_pkg/motor_control_pkg.egg-info/PKG-INFO
+[0.578s] writing dependency_links to ../../build/motor_control_pkg/motor_control_pkg.egg-info/dependency_links.txt
+[0.578s] writing entry points to ../../build/motor_control_pkg/motor_control_pkg.egg-info/entry_points.txt
+[0.578s] writing requirements to ../../build/motor_control_pkg/motor_control_pkg.egg-info/requires.txt
+[0.578s] writing top-level names to ../../build/motor_control_pkg/motor_control_pkg.egg-info/top_level.txt
+[0.580s] reading manifest file '../../build/motor_control_pkg/motor_control_pkg.egg-info/SOURCES.txt'
+[0.580s] writing manifest file '../../build/motor_control_pkg/motor_control_pkg.egg-info/SOURCES.txt'
+[0.581s] running build
+[0.581s] running build_py
+[0.581s] running install
+[0.581s] running install_lib
+[0.582s] running install_data
+[0.582s] copying config/input_params.yaml -> /home/luxfero/uros_ws/install/motor_control_pkg/share/motor_control_pkg/config
+[0.582s] running install_egg_info
+[0.583s] removing '/home/luxfero/uros_ws/install/motor_control_pkg/lib/python3.10/site-packages/motor_control_pkg-0.0.0-py3.10.egg-info' (and everything under it)
+[0.583s] Copying ../../build/motor_control_pkg/motor_control_pkg.egg-info to /home/luxfero/uros_ws/install/motor_control_pkg/lib/python3.10/site-packages/motor_control_pkg-0.0.0-py3.10.egg-info
+[0.584s] running install_scripts
+[0.596s] Installing input_node script to /home/luxfero/uros_ws/install/motor_control_pkg/lib/motor_control_pkg
+[0.596s] writing list of installed files to '/home/luxfero/uros_ws/build/motor_control_pkg/install.log'
+[0.612s] Invoked command in '/home/luxfero/uros_ws/src/motor_control_pkg' returned '0': PYTHONPATH=/home/luxfero/uros_ws/build/motor_control_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/luxfero/uros_ws/install/motor_control_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/motor_control_pkg build --build-base /home/luxfero/uros_ws/build/motor_control_pkg/build install --record /home/luxfero/uros_ws/build/motor_control_pkg/install.log --single-version-externally-managed install_data

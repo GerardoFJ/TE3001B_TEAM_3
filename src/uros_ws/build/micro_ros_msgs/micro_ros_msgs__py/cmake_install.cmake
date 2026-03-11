@@ -1,8 +1,8 @@
-# Install script for directory: /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py
+# Install script for directory: /home/luxfero/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/workspace/TE3001B_TEAM_3/src/uros_ws/install/micro_ros_msgs")
+  set(CMAKE_INSTALL_PREFIX "/home/luxfero/uros_ws/install/micro_ros_msgs")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

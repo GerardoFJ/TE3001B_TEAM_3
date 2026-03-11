@@ -1,13 +1,13 @@
 # Target labels
  xrceagent
 # Source files and their labels
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/CMakeFiles/xrceagent
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/CMakeFiles/xrceagent.rule
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/CMakeFiles/xrceagent-complete.rule
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-build.rule
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-configure.rule
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-download.rule
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-install.rule
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-mkdir.rule
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-patch.rule
-/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-update.rule
+/home/luxfero/uros_ws/build/micro_ros_agent/CMakeFiles/xrceagent
+/home/luxfero/uros_ws/build/micro_ros_agent/CMakeFiles/xrceagent.rule
+/home/luxfero/uros_ws/build/micro_ros_agent/CMakeFiles/xrceagent-complete.rule
+/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-build.rule
+/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-configure.rule
+/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-download.rule
+/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-install.rule
+/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-mkdir.rule
+/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-patch.rule
+/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-stamp/xrceagent-update.rule

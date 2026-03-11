@@ -1,0 +1,11 @@
+ input_node:
+  ros__parameters:
+    signal_type: "sine"
+    publish_rate: 100.0
+    amplitude: 0.8
+    offset: 0.0
+    frequency: 0.1
+    phase: 0.0
+    min_output: -1.0
+    max_output: 1.0
+    duration: -1.0

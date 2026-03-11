@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /workspace/TE3001B_TEAM_3/src/uros_ws/src/uros/micro_ros_msgs
+CMAKE_SOURCE_DIR = /home/luxfero/uros_ws/src/uros/micro_ros_msgs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs
+CMAKE_BINARY_DIR = /home/luxfero/uros_ws/build/micro_ros_msgs
 
 # Utility rule file for micro_ros_msgs__py.
 
@@ -93,8 +93,8 @@ rosidl_generator_py/micro_ros_msgs/_micro_ros_msgs_s.ep.rosidl_typesupport_fastr
 rosidl_generator_py/micro_ros_msgs/_micro_ros_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/micro_ros_msgs/msg/Graph.idl
 rosidl_generator_py/micro_ros_msgs/_micro_ros_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/micro_ros_msgs/msg/Node.idl
 rosidl_generator_py/micro_ros_msgs/_micro_ros_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/micro_ros_msgs/msg/Entity.idl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Python code for ROS interfaces"
-	cd /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py && /usr/bin/python3 /opt/ros/humble/share/rosidl_generator_py/cmake/../../../lib/rosidl_generator_py/rosidl_generator_py --generator-arguments-file /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/rosidl_generator_py__arguments.json --typesupport-impls "rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c;rosidl_typesupport_c"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/luxfero/uros_ws/build/micro_ros_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Python code for ROS interfaces"
+	cd /home/luxfero/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py && /usr/bin/python3 /opt/ros/humble/share/rosidl_generator_py/cmake/../../../lib/rosidl_generator_py/rosidl_generator_py --generator-arguments-file /home/luxfero/uros_ws/build/micro_ros_msgs/rosidl_generator_py__arguments.json --typesupport-impls "rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c;rosidl_typesupport_c"
 
 rosidl_generator_py/micro_ros_msgs/_micro_ros_msgs_s.ep.rosidl_typesupport_introspection_c.c: rosidl_generator_py/micro_ros_msgs/_micro_ros_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/micro_ros_msgs/_micro_ros_msgs_s.ep.rosidl_typesupport_introspection_c.c
@@ -142,10 +142,10 @@ micro_ros_msgs__py/CMakeFiles/micro_ros_msgs__py.dir/build: micro_ros_msgs__py
 .PHONY : micro_ros_msgs__py/CMakeFiles/micro_ros_msgs__py.dir/build
 
 micro_ros_msgs__py/CMakeFiles/micro_ros_msgs__py.dir/clean:
-	cd /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py && $(CMAKE_COMMAND) -P CMakeFiles/micro_ros_msgs__py.dir/cmake_clean.cmake
+	cd /home/luxfero/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py && $(CMAKE_COMMAND) -P CMakeFiles/micro_ros_msgs__py.dir/cmake_clean.cmake
 .PHONY : micro_ros_msgs__py/CMakeFiles/micro_ros_msgs__py.dir/clean
 
 micro_ros_msgs__py/CMakeFiles/micro_ros_msgs__py.dir/depend:
-	cd /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /workspace/TE3001B_TEAM_3/src/uros_ws/src/uros/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py/CMakeFiles/micro_ros_msgs__py.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/luxfero/uros_ws/build/micro_ros_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/luxfero/uros_ws/src/uros/micro_ros_msgs /home/luxfero/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py /home/luxfero/uros_ws/build/micro_ros_msgs /home/luxfero/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py /home/luxfero/uros_ws/build/micro_ros_msgs/micro_ros_msgs__py/CMakeFiles/micro_ros_msgs__py.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : micro_ros_msgs__py/CMakeFiles/micro_ros_msgs__py.dir/depend
 

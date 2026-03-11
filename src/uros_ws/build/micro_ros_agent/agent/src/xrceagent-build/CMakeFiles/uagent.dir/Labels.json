@@ -2,34 +2,34 @@
 	"sources" : 
 	[
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/CMakeFiles/uagent"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/CMakeFiles/uagent"
 		},
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/CMakeFiles/uagent.rule"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/CMakeFiles/uagent.rule"
 		},
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/CMakeFiles/uagent-complete.rule"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/CMakeFiles/uagent-complete.rule"
 		},
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-build.rule"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-build.rule"
 		},
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-configure.rule"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-configure.rule"
 		},
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-download.rule"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-download.rule"
 		},
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-install.rule"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-install.rule"
 		},
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-mkdir.rule"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-mkdir.rule"
 		},
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-patch.rule"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-patch.rule"
 		},
 		{
-			"file" : "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-update.rule"
+			"file" : "/home/luxfero/uros_ws/build/micro_ros_agent/agent/src/xrceagent-build/uagent-prefix/src/uagent-stamp/uagent-update.rule"
 		}
 	],
 	"target" : 

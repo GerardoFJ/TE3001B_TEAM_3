@@ -1,0 +1,21 @@
+[0.005s] Invoking command in '/home/luxfero/uros_ws/build/micro_ros_setup': /usr/bin/cmake /home/luxfero/uros_ws/src/micro_ros_setup -DCMAKE_INSTALL_PREFIX=/home/luxfero/uros_ws/install/micro_ros_setup
+[0.017s] [31mCMake Error at CMakeLists.txt:19 (find_package):
+[0.017s]   By not providing "Findament_cmake.cmake" in CMAKE_MODULE_PATH this project
+[0.017s]   has asked CMake to find a package configuration file provided by
+[0.017s]   "ament_cmake", but CMake did not find one.
+[0.017s] 
+[0.017s]   Could not find a package configuration file provided by "ament_cmake" with
+[0.018s]   any of the following names:
+[0.018s] 
+[0.018s]     ament_cmakeConfig.cmake
+[0.018s]     ament_cmake-config.cmake
+[0.018s] 
+[0.018s]   Add the installation prefix of "ament_cmake" to CMAKE_PREFIX_PATH or set
+[0.018s]   "ament_cmake_DIR" to a directory containing one of the above files.  If
+[0.018s]   "ament_cmake" provides a separate development package or SDK, be sure it
+[0.018s]   has been installed.
+[0.018s] 
+[0.018s] [0m
+[0.018s] -- Configuring incomplete, errors occurred!
+[0.018s] See also "/home/luxfero/uros_ws/build/micro_ros_setup/CMakeFiles/CMakeOutput.log".
+[0.019s] Invoked command in '/home/luxfero/uros_ws/build/micro_ros_setup' returned '1': /usr/bin/cmake /home/luxfero/uros_ws/src/micro_ros_setup -DCMAKE_INSTALL_PREFIX=/home/luxfero/uros_ws/install/micro_ros_setup

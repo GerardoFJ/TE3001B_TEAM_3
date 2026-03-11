@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /workspace/TE3001B_TEAM_3/src/uros_ws/src/uros/micro_ros_msgs
+CMAKE_SOURCE_DIR = /home/luxfero/uros_ws/src/uros/micro_ros_msgs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs
+CMAKE_BINARY_DIR = /home/luxfero/uros_ws/build/micro_ros_msgs
 
 # Utility rule file for micro_ros_msgs_uninstall.
 
@@ -67,7 +67,7 @@ include CMakeFiles/micro_ros_msgs_uninstall.dir/compiler_depend.make
 include CMakeFiles/micro_ros_msgs_uninstall.dir/progress.make
 
 CMakeFiles/micro_ros_msgs_uninstall:
-	/usr/bin/cmake -P /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
+	/usr/bin/cmake -P /home/luxfero/uros_ws/build/micro_ros_msgs/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
 
 micro_ros_msgs_uninstall: CMakeFiles/micro_ros_msgs_uninstall
 micro_ros_msgs_uninstall: CMakeFiles/micro_ros_msgs_uninstall.dir/build.make
@@ -82,6 +82,6 @@ CMakeFiles/micro_ros_msgs_uninstall.dir/clean:
 .PHONY : CMakeFiles/micro_ros_msgs_uninstall.dir/clean
 
 CMakeFiles/micro_ros_msgs_uninstall.dir/depend:
-	cd /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /workspace/TE3001B_TEAM_3/src/uros_ws/src/uros/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/src/uros/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs /workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_msgs/CMakeFiles/micro_ros_msgs_uninstall.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/luxfero/uros_ws/build/micro_ros_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/luxfero/uros_ws/src/uros/micro_ros_msgs /home/luxfero/uros_ws/src/uros/micro_ros_msgs /home/luxfero/uros_ws/build/micro_ros_msgs /home/luxfero/uros_ws/build/micro_ros_msgs /home/luxfero/uros_ws/build/micro_ros_msgs/CMakeFiles/micro_ros_msgs_uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/micro_ros_msgs_uninstall.dir/depend
 

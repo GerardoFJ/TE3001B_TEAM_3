@@ -1,1 +1,1 @@
-/workspace/TE3001B_TEAM_3/src/uros_ws/install/micro_ros_msgs:/workspace/TE3001B_TEAM_3/src/uros_ws/install/micro_ros_setup:/opt/ros/humble
+/opt/ros/humble:/home/luxfero/uros_ws/install/micro_ros_setup:/home/luxfero/uros_ws/install/micro_ros_agent:/home/luxfero/uros_ws/install/micro_ros_msgs

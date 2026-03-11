@@ -1,8 +1,8 @@
-# Install script for directory: /workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup
+# Install script for directory: /home/luxfero/uros_ws/src/micro_ros_setup
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/workspace/TE3001B_TEAM_3/src/uros_ws/install/micro_ros_setup")
+  set(CMAKE_INSTALL_PREFIX "/home/luxfero/uros_ws/install/micro_ros_setup")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -43,11 +43,11 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ament_index/resource_index/package_run_dependencies" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/micro_ros_setup")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ament_index/resource_index/package_run_dependencies" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/micro_ros_setup")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ament_index/resource_index/parent_prefix_path" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_index/share/ament_index/resource_index/parent_prefix_path/micro_ros_setup")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ament_index/resource_index/parent_prefix_path" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_index/share/ament_index/resource_index/parent_prefix_path/micro_ros_setup")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -55,7 +55,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup/environment" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/ament_prefix_path.dsv")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup/environment" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/ament_prefix_path.dsv")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -63,60 +63,60 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup/environment" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/path.dsv")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup/environment" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/path.dsv")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/local_setup.bash")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/local_setup.bash")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/local_setup.sh")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/local_setup.sh")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/local_setup.zsh")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/local_setup.zsh")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/local_setup.dsv")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/local_setup.dsv")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/package.dsv")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_environment_hooks/package.dsv")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ament_index/resource_index/packages" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_index/share/ament_index/resource_index/packages/micro_ros_setup")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ament_index/resource_index/packages" TYPE FILE FILES "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_index/share/ament_index/resource_index/packages/micro_ros_setup")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup/cmake" TYPE FILE FILES
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_core/micro_ros_setupConfig.cmake"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/ament_cmake_core/micro_ros_setupConfig-version.cmake"
+    "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_core/micro_ros_setupConfig.cmake"
+    "/home/luxfero/uros_ws/build/micro_ros_setup/ament_cmake_core/micro_ros_setupConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/micro_ros_setup" TYPE FILE FILES "/home/luxfero/uros_ws/src/micro_ros_setup/package.xml")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/." TYPE DIRECTORY FILES "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/config" USE_SOURCE_PERMISSIONS)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/." TYPE DIRECTORY FILES "/home/luxfero/uros_ws/src/micro_ros_setup/config" USE_SOURCE_PERMISSIONS)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/micro_ros_setup" TYPE PROGRAM FILES
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/create_ws.sh"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/create_agent_ws.sh"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/create_firmware_ws.sh"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/configure_firmware.sh"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/flash_firmware.sh"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/build_firmware.sh"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/build_agent.sh"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/yaml_filter.py"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/clean_env.sh"
-    "/workspace/TE3001B_TEAM_3/src/uros_ws/src/micro_ros_setup/scripts/component"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/create_ws.sh"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/create_agent_ws.sh"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/create_firmware_ws.sh"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/configure_firmware.sh"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/flash_firmware.sh"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/build_firmware.sh"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/build_agent.sh"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/yaml_filter.py"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/clean_env.sh"
+    "/home/luxfero/uros_ws/src/micro_ros_setup/scripts/component"
     )
 endif()
 
@@ -128,5 +128,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/workspace/TE3001B_TEAM_3/src/uros_ws/build/micro_ros_setup/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/luxfero/uros_ws/build/micro_ros_setup/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
