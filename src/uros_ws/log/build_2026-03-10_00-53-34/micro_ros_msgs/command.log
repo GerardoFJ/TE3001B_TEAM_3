@@ -1,2 +1,0 @@
-Invoking command in '/home/luxfero/uros_ws/build/micro_ros_msgs': /usr/bin/cmake /home/luxfero/uros_ws/src/uros/micro_ros_msgs -DCMAKE_INSTALL_PREFIX=/home/luxfero/uros_ws/install/micro_ros_msgs
-Invoked command in '/home/luxfero/uros_ws/build/micro_ros_msgs' returned '1': /usr/bin/cmake /home/luxfero/uros_ws/src/uros/micro_ros_msgs -DCMAKE_INSTALL_PREFIX=/home/luxfero/uros_ws/install/micro_ros_msgs
