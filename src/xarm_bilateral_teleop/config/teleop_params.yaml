@@ -1,0 +1,42 @@
+# Bilateral teleoperation parameters
+# -----------------------------------
+
+# Virtual force/torque sensor (one instance per arm)
+force_sensor:
+  ros__parameters:
+    control_hz: 100.0
+    cutoff_hz: 5.0             # LPF cutoff [Hz]
+    force_threshold_n: 2.0     # contact detection threshold [N]
+    calibration_duration_s: 2.0
+
+# Master admittance controller
+# Admittance model: Md * v_dot + Bd * v = F_net
+master_admittance:
+  ros__parameters:
+    Md: [2.0, 2.0, 2.0]       # virtual mass [kg]
+    Bd: [10.0, 10.0, 10.0]    # virtual damping [N*s/m]
+    alpha: 0.3                 # force feedback reflection gain
+    force_deadband_n: 1.5      # ignore forces below this [N]
+    force_clamp_n: 20.0        # max reflected force [N]
+    max_cart_speed: 0.10       # m/s per axis
+    singularity_threshold: 50.0
+    control_hz: 50.0
+    # Topics (explicit for clarity)
+    servo_twist_topic: /master/servo_server/delta_twist_cmds
+    master_force_topic: /master/force_sensor/force_estimate
+    slave_force_topic: /slave/force_sensor/force_estimate
+    joint_states_topic: /master/joint_states
+
+# Slave impedance tracker
+# v_cmd = v_ff + Kp * clamp(e, 1cm)
+slave_impedance:
+  ros__parameters:
+    Kp: [5.0, 5.0, 5.0]       # position gain [1/s]
+    max_cart_speed: 0.10       # m/s per axis
+    control_hz: 50.0
+    timeout_s: 0.5             # stop if no master pose for this long
+    # Topics
+    servo_twist_topic: /slave/servo_server/delta_twist_cmds
+    master_pose_topic: /teleop/master_pose
+    master_velocity_topic: /teleop/master_velocity
+    joint_states_topic: /slave/joint_states
