@@ -23,7 +23,7 @@ master_admittance:
     control_hz: 50.0
     # Topics (explicit for clarity)
     servo_twist_topic: /master/servo_server/delta_twist_cmds
-    master_force_topic: /master/force_sensor/force_estimate
+    master_force_topic: /teleop/operator_force_direct
     slave_force_topic: /slave/force_sensor/force_estimate
     joint_states_topic: /master/joint_states
 
