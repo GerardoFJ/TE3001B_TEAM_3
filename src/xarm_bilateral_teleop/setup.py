@@ -17,6 +17,8 @@ setup(
          glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
         (os.path.join('share', package_name, 'config'),
          glob(os.path.join('config', '*.yaml'))),
+        (os.path.join('share', package_name, 'isaac_sim'),
+         glob(os.path.join('isaac_sim', '*.py'))),
     ],
     install_requires=['setuptools', 'numpy'],
     zip_safe=True,
@@ -26,6 +28,7 @@ setup(
             'master_admittance = xarm_bilateral_teleop.master_node:main',
             'slave_impedance   = xarm_bilateral_teleop.slave_node:main',
             'keyboard_teleop   = xarm_bilateral_teleop.keyboard_teleop:main',
+            'traj_to_js        = xarm_bilateral_teleop.trajectory_to_joint_state:main',
         ],
     },
 )
