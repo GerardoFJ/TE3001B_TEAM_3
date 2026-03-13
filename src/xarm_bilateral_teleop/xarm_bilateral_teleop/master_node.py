@@ -17,6 +17,7 @@ Publishes:
 import numpy as np
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from geometry_msgs.msg import PoseStamped, TwistStamped, WrenchStamped
 from sensor_msgs.msg import JointState
 
@@ -91,11 +92,17 @@ class MasterAdmittanceNode(Node):
         self._pub_vel = self.create_publisher(
             TwistStamped, '/teleop/master_velocity', 10)
 
+        # QoS for micro-ROS / ESP32 publishers (BEST_EFFORT)
+        _be_qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10)
+
         # Subscribers
         self.create_subscription(
             WrenchStamped, master_force_topic, self._master_force_cb, 10)
         self.create_subscription(
-            WrenchStamped, override_topic, self._override_force_cb, 10)
+            WrenchStamped, override_topic, self._override_force_cb, _be_qos)
         self.create_subscription(
             WrenchStamped, slave_force_topic, self._slave_force_cb, 10)
         self.create_subscription(
