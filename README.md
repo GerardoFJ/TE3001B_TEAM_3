@@ -1,4 +1,4 @@
-# TE3001B — Team 3
+# TE3001B — Team 4
 
 **Fundamentacion de Robotica** — Tecnologico de Monterrey, 2026
 
