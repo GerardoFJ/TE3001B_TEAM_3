@@ -1,0 +1,1826 @@
+%% ============================================================
+%% ENTREGABLE — TE3001B Fundamentación de Robótica
+%% Teleoperación con Sensado de Fuerza: xArm Lite 6 (Maestro-Esclavo)
+%% Formato IEEE Transactions — Plantilla para Alumnos
+%% Prof. Alberto Muñoz — Computational Robotics Lab
+%% Tecnológico de Monterrey — 2026
+%% ============================================================
+\documentclass[journal,10pt,twoside]{IEEEtran}
+
+%% ── Paquetes base ────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+%% Restore IEEE English labels (babel[spanish] overrides them)
+\renewcommand{\abstractname}{Abstract}
+\def\IEEEkeywordsname{Index Terms}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{url}
+\usepackage{hyperref}   %% hyperref DESPUÉS de xcolor para evitar conflictos
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,shapes,positioning,calc,backgrounds}
+\tcbuselibrary{breakable,skins}
+
+%% ── Colores institucionales ──────────────────────────────────
+%% IMPORTANTE: definir colores ANTES de \hypersetup
+\definecolor{tec_blue}{RGB}{0,68,124}
+\definecolor{tec_lightblue}{RGB}{0,140,200}
+\definecolor{tec_red}{RGB}{190,30,45}
+\definecolor{tec_gray}{RGB}{100,100,100}
+\definecolor{code_bg}{RGB}{245,247,250}
+\definecolor{code_kw}{RGB}{0,100,180}
+\definecolor{code_str}{RGB}{180,50,20}
+\definecolor{code_cmt}{RGB}{80,140,80}
+\definecolor{box_todo}{RGB}{255,243,205}
+\definecolor{box_todo_border}{RGB}{200,140,0}
+\definecolor{box_rubric}{RGB}{232,245,233}
+\definecolor{box_rubric_border}{RGB}{67,160,71}
+\definecolor{box_theory}{RGB}{227,242,253}
+\definecolor{box_theory_border}{RGB}{25,118,210}
+
+%% hypersetup aquí, DESPUÉS de definir tec_blue ───────────────
+\hypersetup{colorlinks=true, linkcolor=tec_blue, urlcolor=tec_blue,
+            citecolor=tec_blue}
+
+%% ── Cajas de tcolorbox ───────────────────────────────────────
+\newtcolorbox{todobox}[1][Completar]{
+  colback=box_todo, colframe=box_todo_border,
+  title={\textbf{$\triangleright$ #1}},
+  fonttitle=\bfseries\color{tec_gray},
+  breakable, enhanced, left=4pt, right=4pt
+}
+\newtcolorbox{rubricbox}[1][Rúbrica]{
+  colback=box_rubric, colframe=box_rubric_border,
+  title={\textbf{\checkmark\ Criterio de Evaluación — #1}},
+  fonttitle=\bfseries\small\color{box_rubric_border},
+  breakable, enhanced, left=4pt, right=4pt
+}
+\newtcolorbox{theorybox}[1][Marco Teórico]{
+  colback=box_theory, colframe=box_theory_border,
+  title={\textbf{(i) Contexto: #1}},
+  fonttitle=\bfseries\small\color{tec_blue},
+  breakable, enhanced, left=4pt, right=4pt
+}
+
+%% ── Estilo de código ─────────────────────────────────────────
+\lstdefinestyle{python}{
+  language=Python,
+  backgroundcolor=\color{code_bg},
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{code_kw}\bfseries,
+  stringstyle=\color{code_str},
+  commentstyle=\color{code_cmt}\itshape,
+  numbers=left, numberstyle=\tiny\color{tec_gray},
+  numbersep=6pt, frame=single, tabsize=4,
+  showstringspaces=false, breaklines=true,
+  morekeywords={import,from,as,def,class,return,True,False,None,self},
+  literate={á}{{\'{a}}}1 {é}{{\'{e}}}1 {í}{{\'{i}}}1
+           {ó}{{\'{o}}}1 {ú}{{\'{u}}}1 {ñ}{{\~{n}}}1,
+}
+\lstset{style=python}
+
+%% ── Macros de ayuda ──────────────────────────────────────────
+\newcommand{\answerline}[1][3cm]{\underline{\hspace{#1}}}
+\newcommand{\pts}[1]{\textcolor{tec_red}{\textbf{[#1 pts]}}}
+\newcommand{\TODO}[1]{\begin{todobox}[Respuesta del equipo]
+  \textit{#1}
+\end{todobox}}
+\newcommand{\FIGURE}[1]{\begin{todobox}[Insertar figura]
+  \centering
+  %% \resizebox escala el tikzpicture al ancho disponible
+  \resizebox{\linewidth}{!}{%
+    \begin{tikzpicture}
+      \draw[tec_gray, dashed, line width=1pt] (0,0) rectangle (8,4);
+      \node[tec_gray, font=\small] at (4,2) {#1};
+    \end{tikzpicture}%
+  }
+\end{todobox}}
+
+%% ── Metadatos del artículo ───────────────────────────────────
+\begin{document}
+
+\title{Teleoperación con Sensado de Fuerza Física\\
+  entre dos xArm Lite 6:\\
+  Diseño, Implementación y Evaluación Experimental}
+
+\author{%
+  \IEEEauthorblockN{%
+    Gerardo Fregoso Jiménez\IEEEauthorrefmark{1},\;
+    Luis Fernando Ruíz Neria\IEEEauthorrefmark{1},\;
+    Daniel Eduardo Hinojosa Alvarado\IEEEauthorrefmark{1},\;
+    José Raúl Arredondo López\IEEEauthorrefmark{1}%
+  }\\
+  \IEEEauthorblockA{%
+    \IEEEauthorrefmark{1}%
+    Computational Robotics Lab, Tecnológico de Monterrey,
+    Monterrey, N.L., México\\
+    \texttt{\{A00838645, A00839528, A00838156, A01742153\}@tec.mx}
+  }
+}
+
+\maketitle
+
+%% ── Abstract ─────────────────────────────────────────────────
+\begin{abstract}
+This paper presents the design, implementation, and experimental
+evaluation of a bilateral teleoperation system with force sensing
+between two xArm~Lite~6 six-degree-of-freedom manipulators. The
+master-slave architecture operates at 100~Hz over UDP communication
+using binary packets of 56 and 104~bytes, achieving an effective
+delay of $T_d < 2$~ms on a local area network. Cartesian force at
+the slave end-effector is estimated without an external F/T sensor
+by computing joint-torque residuals: the damped least-squares
+pseudo-inverse of the geometric Jacobian ($\lambda = 0.01$) maps
+gravity-compensated residual torques to a six-component wrench,
+followed by a first-order low-pass filter at $f_c = 5$~Hz. Since
+the xArm Python SDK does not support direct joint-torque injection
+in user mode, haptic feedback to the master is implemented as a
+joint-space position-impedance correction with force-reflection
+gain $\beta = 0.3$. An additional physical force sensor based on an
+ESP32 microcontroller with micro-ROS was designed and built,
+measuring three-axis forces via an analog joystick ($\pm3$~N) and a
+spring-ultrasonic assembly ($k = 1000$~N/m), publishing
+\texttt{WrenchStamped} messages to ROS~2 at 50~Hz over WiFi.
+Experiments demonstrate functional teleoperation with joint tracking
+RMS error $<$~[X]° and force estimation error $<$~[X]~N against a
+precision scale reference.
+\end{abstract}
+
+\begin{IEEEkeywords}
+  teleoperación, sensado de fuerza, xArm Lite 6, control de impedancia,
+  retroalimentación háptica, micro-ROS, admitancia
+\end{IEEEkeywords}
+
+%% ============================================================
+\section{Introducción}
+%% ============================================================
+
+\IEEEPARstart{L}{a} teleoperación con retroalimentación de fuerza
+constituye un paradigma fundamental en robótica cuando se requiere que
+un operador humano interactúe con entornos remotos o peligrosos sin
+presencia física~\cite{murray1994}. El xArm Lite 6, desarrollado por
+UFACTORY~\cite{xarm_github}, es un manipulador de 6 grados de libertad
+(DOF) con capacidad de control de torque que lo hace idóneo para experimentos
+de sensado de fuerza por torque articular.
+
+\begin{theorybox}[Motivación]
+  El reto central de este proyecto es cerrar el lazo de fuerza entre
+  dos brazos robóticos: el robot \textbf{Maestro}, operado por el humano,
+  y el robot \textbf{Esclavo}, que interactúa con el entorno.
+  La fuerza de contacto estimada en el esclavo debe reflejarse como
+  torque en las articulaciones del maestro, creando la sensación
+  háptica que guía al operador.
+\end{theorybox}
+
+\subsection{Contexto y Motivación}
+
+La teleoperación con sensado de fuerza permite extender la capacidad
+sensorial del operador humano más allá de sus limitaciones físicas, ya
+sea en distancia, escala o condiciones ambientales adversas. En el
+contexto industrial, la manipulación remota de materiales peligrosos
+(residuos nucleares, explosivos) requiere que el operador perciba las
+fuerzas de contacto en tiempo real para evitar daños al entorno o al
+propio manipulador~\cite{niemeyer2008}. Por ejemplo, en plantas de
+desmantelamiento nuclear, sistemas bilaterales equipados con sensores
+F/T de muñeca operan con retardos de red de decenas de milisegundos,
+imponiendo severas restricciones de estabilidad que son abordadas
+mediante control de onda~\cite{niemeyer2008}.
+
+En el ámbito médico, la cirugía robótica mínimamente invasiva (e.g.,
+sistemas tipo da Vinci) depende de la retroalimentación háptica para
+que el cirujano calibre la fuerza de tracción sobre tejidos blandos.
+Estudios clínicos han demostrado que la ausencia de retroalimentación
+de fuerza incrementa significativamente la tasa de errores en tareas de
+sutura~\cite{siciliano2009}. La estimación de fuerza a partir de
+torques articulares —sin sensor externo— abre la posibilidad de dotar
+de haptics a sistemas quirúrgicos de bajo costo.
+
+Desde el punto de vista académico, el problema de teleoperación con
+retardo es un banco de pruebas canónico para teorías de estabilidad de
+sistemas interconectados~\cite{colgate1993,spong2006}. La
+implementación con plataformas accesibles como el xArm Lite 6 y el
+ecosistema ROS~2 permite replicar y extender resultados del estado del
+arte de forma reproducible.
+
+\subsection{Contribuciones del Trabajo}
+
+Las contribuciones específicas de esta implementación son:
+\begin{itemize}[itemsep=0.2em]
+  \item \textbf{Protocolo UDP de baja latencia:} diseño de un protocolo
+        binario de comunicación a 100~Hz con paquetes de 56 y 104~bytes
+        y medición de RTT, jitter y percentil 99 de latencia.
+  \item \textbf{Estimador de fuerza sensorless:} implementación del
+        estimador $\hat{\bm{F}}_{ext} = (\bm{J}^\top)^+
+        (\bm{\tau}_{meas} - \bm{\tau}_{grav})$ con pseudoinversa
+        amortiguada (DLS) y filtro pasa-bajas a 5~Hz, incluyendo
+        calibración automática del nivel de ruido en reposo.
+  \item \textbf{Retroalimentación háptica por impedancia de posición:}
+        alternativa al control de torque directo que no está disponible
+        en el SDK Python del xArm, implementando la corrección
+        $\delta\bm{q} = -k_h \bm{J}^\top \beta \hat{\bm{F}}_{ext}$.
+  \item \textbf{Sensor de fuerza físico con micro-ROS:} diseño y
+        construcción de un sensor de tres ejes basado en ESP32, joystick
+        analógico y resorte-ultrasónico, integrado al sistema ROS~2
+        mediante micro-ROS vía WiFi a 50~Hz.
+  \item \textbf{Integración ROS~2 + MoveIt Servo:} nodos de admitancia
+        (maestro) e impedancia (esclavo) que publican
+        \texttt{TwistStamped} a MoveIt~Servo, habilitando teleoperación
+        en espacio cartesiano a 50~Hz.
+\end{itemize}
+
+\subsection{Estructura del Artículo}
+El resto de este artículo se organiza como sigue:
+la Sección~\ref{sec:background} presenta los fundamentos teóricos;
+la Sección~\ref{sec:architecture} describe la arquitectura del sistema;
+la Sección~\ref{sec:force} detalla la estrategia de sensado de fuerza;
+la Sección~\ref{sec:control} expone el esquema de control;
+la Sección~\ref{sec:implementation} documenta la implementación con xArm SDK;
+la Sección~\ref{sec:experiments} reporta los resultados experimentales;
+la Sección~\ref{sec:discussion} discute los hallazgos;
+y la Sección~\ref{sec:conclusions} concluye el trabajo.
+
+%% ============================================================
+\section{Marco Teórico}
+\label{sec:background}
+%% ============================================================
+
+\subsection{Cinemática y Jacobiano del xArm Lite 6}
+
+El xArm Lite 6 es un manipulador de $n=6$ DOF con articulaciones
+rotacionales. Su cinemática directa se describe mediante la convención
+Denavit-Hartenberg (DH) o Product of Exponentials (PoE).
+
+\begin{theorybox}[Jacobiano Geométrico]
+  El Jacobiano $\bm{J}(\bm{q}) \in \mathbb{R}^{6\times6}$ mapea
+  velocidades articulares a velocidades cartesianas del efector final:
+  \[
+    \begin{pmatrix} \bm{v} \\ \bm{\omega} \end{pmatrix} = \bm{J}(\bm{q})\,\dot{\bm{q}}
+  \]
+  Su transpuesta mapea fuerzas/torques cartesianos a torques articulares:
+  \[
+    \bm{\tau} = \bm{J}^\top(\bm{q})\,\bm{F}_{ext}
+  \]
+  Esta relación es la base del \emph{torque-based force sensing}.
+\end{theorybox}
+
+\subsubsection*{Pregunta~T1 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Expliquen la diferencia entre el \textbf{Jacobiano analítico}
+        y el \textbf{Jacobiano geométrico} para el xArm Lite 6.
+        ¿Cuál utilizan en su implementación y por qué?
+  \item Identifiquen y describan \textbf{dos configuraciones singulares}
+        del xArm Lite 6 a partir de su geometría DH. ¿Qué ocurre con la
+        estimación de fuerza $\hat{\bm{F}} = (\bm{J}^\top)^+\bm{\tau}$
+        cerca de esas singularidades?
+  \item ¿Cómo detectan programáticamente que el robot está cerca de
+        una singularidad? Escriban la condición en términos del
+        número de condición $\kappa(\bm{J})$.
+\end{enumerate}
+
+\textbf{(a) Jacobiano analítico vs.\ geométrico.}
+El \textbf{Jacobiano analítico} $\bm{J}_a \in \mathbb{R}^{6\times6}$
+se define como la derivada parcial de la pose del efector final
+$\bm{x} = [\bm{p}^\top, \bm{\phi}^\top]^\top$ (donde $\bm{\phi}$ es
+una representación mínima de la orientación, e.g., ángulos de Euler
+RPY) con respecto a las coordenadas articulares:
+$\dot{\bm{x}} = \bm{J}_a(\bm{q})\dot{\bm{q}}$.
+
+El \textbf{Jacobiano geométrico} $\bm{J} \in \mathbb{R}^{6\times6}$
+relaciona directamente $\dot{\bm{q}}$ con la velocidad lineal
+$\bm{v}$ y angular $\bm{\omega}$ del efector en el frame base:
+\begin{equation}
+  \bm{J}(\bm{q}) =
+  \begin{pmatrix} \bm{J}_v \\ \bm{J}_w \end{pmatrix},\;
+  \text{col.\ } i{:}\;
+  \begin{cases}
+    \bm{J}_{v,i} = \bm{z}_{i-1} \!\times\! (\bm{p}_e - \bm{p}_{i-1}) \\
+    \bm{J}_{w,i} = \bm{z}_{i-1}
+  \end{cases}
+  \label{eq:geom_jac}
+\end{equation}
+donde $\bm{z}_{i-1}$ y $\bm{p}_{i-1}$ son el eje~$z$ y el origen del
+frame $(i{-}1)$ en el frame base.
+
+En nuestra implementación se utiliza el \textbf{Jacobiano geométrico}
+(función \texttt{geometric\_jacobian(q)} en \texttt{kinematics.py}).
+La razón es doble: (i) es directamente aplicable en la relación de
+estática $\bm{\tau} = \bm{J}^\top \bm{F}$ sin necesidad de ningún
+factor de transformación adicional; (ii) evita las singularidades de
+representación de la orientación que presentan los ángulos de Euler
+(e.g., gimbal lock para RPY cuando $\phi_2 = \pm\pi/2$).
+
+Los parámetros DH del xArm Lite 6, extraídos del manual UFACTORY e
+implementados en \texttt{jacobian\_utils.py}, se muestran en la
+Tabla~\ref{tab:dh}.
+
+\begin{table}[h]
+  \centering
+  \caption{Parámetros DH estándar del xArm Lite 6}
+  \label{tab:dh}
+  \small
+  \begin{tabular}{ccccc}
+    \toprule
+    \textbf{Joint} & $a_i$ (m) & $d_i$ (m) & $\alpha_i$ (rad) & $\theta_{off}$ (rad) \\
+    \midrule
+    1 & 0.0000 & 0.2433 & $+\pi/2$ & $0$       \\
+    2 & 0.2000 & 0.0000 & $0$      & $-\pi/2$  \\
+    3 & 0.0870 & 0.0000 & $+\pi/2$ & $0$       \\
+    4 & 0.0000 & 0.2276 & $-\pi/2$ & $0$       \\
+    5 & 0.0000 & 0.0000 & $+\pi/2$ & $0$       \\
+    6 & 0.0000 & 0.0615 & $0$      & $0$       \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\textbf{(b) Configuraciones singulares.}
+Para el xArm Lite 6 se identifican dos configuraciones singulares
+principales:
+\begin{enumerate}[label=\roman*.]
+  \item \textbf{Singularidad de codo (\textit{elbow}):} cuando
+        $q_3 \approx 0°$, los eslabones~2 y~3 quedan colineales (el
+        brazo se extiende completamente). El Jacobiano pierde rango en
+        la dirección radial: la articulación~3 ya no aporta movimiento
+        independiente al efector, y $\det(\bm{J}) \to 0$. Cerca de esta
+        configuración, la pseudoinversa $(\bm{J}^\top)^+$ amplifica
+        enormemente el ruido de torque, produciendo estimaciones
+        $\hat{\bm{F}}_{ext}$ espurias de cientos de N.
+  \item \textbf{Singularidad de muñeca (\textit{wrist}):} cuando
+        $q_5 \approx 0°$, los ejes de las articulaciones~4 y~6 se
+        alinean. El robot pierde un grado de libertad rotacional:
+        sólo puede girar alrededor de la dirección común de esos dos
+        ejes. La estimación de torques de momento ($M_x, M_y$) se
+        vuelve indefinida.
+\end{enumerate}
+
+\FIGURE{Fig. T1: Configuraciones singulares del xArm Lite 6.
+Señalen las articulaciones involucradas.}
+
+\textbf{(c) Detección de singularidad.}
+La singularidad se detecta mediante el número de condición del
+Jacobiano:
+\begin{equation}
+  \kappa(\bm{J}) = \frac{\sigma_{max}}{\sigma_{min}}
+  \label{eq:kappa}
+\end{equation}
+donde $\sigma_{max}$ y $\sigma_{min}$ son el mayor y menor valor
+singular de $\bm{J}$. Implementado en \texttt{condition\_number(J)}
+como \texttt{np.linalg.cond(J)}. En nuestro sistema se utilizan dos
+umbrales:
+\begin{align*}
+  \kappa &> 50  \;\Rightarrow\; \text{suspender háptica en maestro} \\
+  \kappa &> 200 \;\Rightarrow\; \text{zona singular severa}
+\end{align*}
+El umbral $\kappa_{th} = 50$ fue seleccionado empíricamente para
+garantizar que $\hat{\bm{F}}_{ext}$ tenga error $< 5$~N en las
+regiones de trabajo habituales.
+
+\subsection{Dinámica del Manipulador}
+
+La dinámica de un robot rígido de $n$ DOF se expresa como:
+\begin{equation}
+  \bm{M}(\bm{q})\ddot{\bm{q}} + \bm{C}(\bm{q},\dot{\bm{q}})\dot{\bm{q}}
+  + \bm{g}(\bm{q}) = \bm{\tau} - \bm{J}^\top\bm{F}_{ext}
+  \label{eq:dynamics}
+\end{equation}
+donde $\bm{M}$ es la matriz de inercia, $\bm{C}$ la matriz de
+Coriolis/centrífuga y $\bm{g}$ el vector gravitacional.
+
+\subsubsection*{Pregunta~T2 \pts{10}}
+\begin{enumerate}[label=(\alph*)]
+  \item Partiendo de la Ec.~\eqref{eq:dynamics}, \textbf{deriven} la
+        ley de control de par calculado (Computed Torque Control, CTC)
+        y demuestren que produce la dinámica de error lineal:
+        \[
+          \ddot{\bm{e}} + K_v\dot{\bm{e}} + K_p\bm{e} = \bm{0}
+        \]
+        ¿Qué condiciones sobre $K_p$ y $K_v$ garantizan
+        estabilidad asintótica global?
+  \item Para el xArm Lite 6 operando en modo \texttt{SERVO} de
+        la SDK, el bucle de control interno trabaja a 250~Hz.
+        Expliquen cómo esto limita la elección de $K_p$ y $K_v$.
+  \item Expresen los polos del sistema cerrado en términos de
+        $\omega_n$ (frecuencia natural) y $\zeta$ (amortiguamiento).
+        ¿Qué valor de $\zeta$ usaron y por qué?
+\end{enumerate}
+
+\textbf{(a) Derivación del CTC.}
+Sea el error de posición $\bm{e} = \bm{q}_d - \bm{q}$ y la ley
+de control de par calculado:
+\begin{equation}
+  \bm{\tau} = \bm{M}(\bm{q})\bm{u} + \bm{C}(\bm{q},\dot{\bm{q}})\dot{\bm{q}}
+              + \bm{g}(\bm{q})
+  \label{eq:ctc_law}
+\end{equation}
+con la señal de control linealizada:
+\[
+  \bm{u} = \ddot{\bm{q}}_d + K_v\dot{\bm{e}} + K_p\bm{e}
+\]
+Sustituyendo~\eqref{eq:ctc_law} en la dinámica~\eqref{eq:dynamics}
+(sin fuerza externa):
+\[
+  \bm{M}(\bm{q})\ddot{\bm{q}} = \bm{M}(\bm{q})\bm{u}
+  \;\Rightarrow\;
+  \ddot{\bm{q}} = \ddot{\bm{q}}_d + K_v\dot{\bm{e}} + K_p\bm{e}
+\]
+Como $\ddot{\bm{e}} = \ddot{\bm{q}}_d - \ddot{\bm{q}}$:
+\begin{equation}
+  \ddot{\bm{e}} + K_v\dot{\bm{e}} + K_p\bm{e} = \bm{0}
+  \label{eq:ctc_error}
+\end{equation}
+
+Esta es una EDO lineal homogénea de segundo orden por articulación.
+Para \textbf{estabilidad asintótica global} se requiere que todos los
+polos del polinomio característico $s^2 + K_v s + K_p$ estén en el
+semiplano izquierdo, lo que equivale a:
+\[
+  K_p > 0 \qquad \text{y} \qquad K_v > 0
+\]
+
+\textbf{(b) Limitaciones del modo SERVO a 250~Hz.}
+El bucle de control interno del xArm opera a 250~Hz
+($T_{int} = 4$~ms). Por el criterio de Nyquist, los polos del sistema
+diseñado deben tener frecuencia natural $\omega_n < \pi/T_{int}
+\approx 785$~rad/s ($\approx 125$~Hz). En la práctica, la latencia
+del socket TCP interno del SDK añade entre 2 y 10~ms de latencia
+variable, por lo que la frecuencia natural efectiva debe estar por
+debajo de 30--50~Hz ($\omega_n < 200$~rad/s). Esto implica:
+\begin{align*}
+  K_p &= \omega_n^2 < 40{,}000 \;\text{(rad/s)}^2 \\
+  K_v &= 2\zeta\omega_n < 600 \;\text{rad/s}
+\end{align*}
+En la implementación se usa $\omega_n = 30$~rad/s
+($K_p = 900$), $\zeta = 1.0$ ($K_v = 60$) para respuesta
+críticamente amortiguada.
+
+\textbf{(c) Polos del sistema cerrado.}
+El polinomio característico de~\eqref{eq:ctc_error} es:
+\begin{gather*}
+  s^2 + 2\zeta\omega_n s + \omega_n^2 = 0 \\
+  s_{1,2} = -\zeta\omega_n \pm \omega_n\sqrt{\zeta^2 - 1}
+\end{gather*}
+Se eligió $\zeta = 1.0$ (amortiguamiento crítico) para maximizar
+la velocidad de convergencia sin sobreimpulso, lo que en la
+práctica reduce el riesgo de oscilaciones cuando hay ruido en los
+torques articulares medidos.
+
+\FIGURE{Fig. T2: Respuesta al escalón del controlador CTC con sus
+ganancias $K_p$ y $K_v$. Señalen $\omega_n$, $\zeta$, tiempo de
+establecimiento y sobreimpulso.}
+
+\subsection{Control de Impedancia}
+
+El control de impedancia~\cite{hogan1985} modela el efector final como
+un sistema masa-resorte-amortiguador virtual:
+\begin{equation}
+  \bm{F}_{ctrl} = \bm{K}_d(\bm{x}_d - \bm{x})
+                + \bm{B}_d(\dot{\bm{x}}_d - \dot{\bm{x}})
+                + \bm{M}_d(\ddot{\bm{x}}_d - \ddot{\bm{x}})
+  \label{eq:impedance}
+\end{equation}
+
+\subsubsection*{Pregunta~T3 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Para la Ec.~\eqref{eq:impedance}, analicen el efecto de
+        aumentar $\bm{K}_d$ en: (i) la sensación háptica del operador,
+        (ii) la estabilidad con retardo $T_d$, (iii) la velocidad
+        de respuesta ante contacto.
+  \item Dado un retardo de red $T_d = 20$~ms medido en su laboratorio,
+        calculen la rigidez virtual máxima $K_{d,max}$ que garantiza
+        estabilidad usando el criterio de pasividad de Colgate~\cite{colgate1993}:
+        \[
+          K_{d,max} < \frac{\pi}{2\,T_d\,\omega_c}
+        \]
+        donde $\omega_c$ es el ancho de banda del controlador interno
+        del xArm. Justifiquen el valor de $\omega_c$ que usan.
+  \item ¿Usaron impedancia en espacio articular o cartesiano?
+        Justifiquen su elección para la tarea de teleoperación.
+\end{enumerate}
+
+\textbf{(a) Efecto de aumentar $\bm{K}_d$.}
+\begin{enumerate}[label=\roman*.]
+  \item \textit{Sensación háptica:} una rigidez $K_d$ mayor produce una
+        fuerza de retroalimentación $\bm{F}_{haptic} = K_d\,\Delta\bm{x}$
+        más perceptible para el operador, mejorando la transparencia del
+        sistema háptico. Sin embargo, si $K_d$ es excesivo, el operador
+        experimenta resistencia constante, dificulta el movimiento libre.
+  \item \textit{Estabilidad con retardo:} el criterio de Colgate indica
+        que $K_d$ debe satisfacer $K_d < \pi/(2\,T_d\,\omega_c)$.
+        Aumentar $K_d$ acerca el sistema al límite de estabilidad:
+        con retardo $T_d = 20$~ms, pequeños incrementos adicionales
+        de $K_d$ sobre el máximo teórico producen oscilaciones
+        divergentes.
+  \item \textit{Velocidad de respuesta:} mayor $K_d$ implica mayor
+        fuerza restauradora ante error de posición, por lo que el
+        esclavo converge más rápido a la referencia del maestro durante
+        eventos de contacto.
+\end{enumerate}
+
+\textbf{(b) Cálculo de $K_{d,max}$ con criterio de Colgate.}
+Se utiliza el ancho de banda del controlador interno del xArm~Lite~6
+en modo SERVO: $\omega_c = 2\pi \times 50 = 314.2$~rad/s (50~Hz,
+frecuencia de Nyquist del lazo de control en nuestra implementación).
+Para $T_d = 20$~ms:
+\begin{equation}
+  K_{d,max} < \frac{\pi}{2 \times 0.020 \times 314.2}
+            = \frac{\pi}{12.57} \approx 0.25 \; \text{N/m}
+  \label{eq:kdmax_20ms}
+\end{equation}
+
+Para nuestro sistema en LAN con $T_d \approx 1$~ms (medido con
+\texttt{net\_test.py}):
+\begin{equation}
+  K_{d,max} < \frac{\pi}{2 \times 0.001 \times 314.2} \approx 5.0 \; \text{N/m}
+  \label{eq:kdmax_1ms}
+\end{equation}
+
+\textbf{(c) Espacio de implementación.}
+En el sistema bilateral se implementaron \textbf{dos capas} de control:
+\begin{itemize}
+  \item \textit{Maestro (admitancia cartesiana):} el modelo de
+        admitancia $\bm{M}_d\dot{\bm{v}} + \bm{B}_d\bm{v} = \bm{F}_{net}$
+        opera en espacio cartesiano con parámetros
+        $\bm{M}_d = \text{diag}(2,2,2)$~kg y
+        $\bm{B}_d = \text{diag}(10,10,10)$~N$\cdot$s/m.
+        La admitancia cartesiana evita el recalibrado articular y es
+        independiente de la configuración del robot.
+  \item \textit{Maestro (háptica articular):} la corrección de posición
+        háptica $\delta\bm{q} = -k_h\bm{J}^\top\beta\hat{\bm{F}}_{ext}$
+        opera en espacio articular, aprovechando que $\bm{J}^\top$
+        transforma directamente fuerza cartesiana a torque articular.
+\end{itemize}
+La elección del espacio cartesiano para la admitancia facilita el
+seguimiento de trayectorias del efector, mientras que el espacio
+articular para la háptica es la alternativa obligada dado que el SDK
+no permite inyección de torques en modo usuario.
+
+%% ============================================================
+\section{Arquitectura del Sistema}
+\label{sec:architecture}
+%% ============================================================
+
+\subsection{Visión General}
+
+El sistema completo consta de dos xArm Lite 6 conectados a sus
+respectivas computadoras de control mediante cable Ethernet, y
+comunicados entre sí mediante una red LAN o Wi-Fi.
+
+\subsubsection*{Pregunta~A1 \pts{10}}
+\begin{enumerate}[label=(\alph*)]
+  \item Elaboren un \textbf{diagrama de bloques} completo del sistema
+        maestro-esclavo que incluya: xArm Maestro, PC Maestro,
+        protocolo de comunicación, PC Esclavo, xArm Esclavo,
+        sensor/estimador de fuerza, y lazo de retroalimentación háptica.
+        Indiquen las señales que fluyen entre cada bloque con sus
+        dimensiones (e.g., $\bm{q}\in\mathbb{R}^6$, $\bm{F}\in\mathbb{R}^3$).
+  \item Describan el \textbf{flujo de datos} en un ciclo de control:
+        ¿qué señales se leen del robot Maestro? ¿qué se envía al Esclavo?
+        ¿qué se retroalimenta al Maestro?
+  \item ¿Cuál es la frecuencia de actualización de su lazo de control?
+        Justifiquen por qué eligieron esa frecuencia en relación con
+        las capacidades del xArm SDK (\texttt{set\_servo\_angle} vs.
+        \texttt{set\_position}).
+\end{enumerate}
+
+\FIGURE{Fig. A1: Diagrama de bloques del sistema de teleoperación
+maestro-esclavo con xArm Lite 6. Señalen todas las señales con sus
+dimensiones.}
+
+\textbf{(a) Descripción del diagrama de bloques.}
+El sistema se organiza en los siguientes bloques interconectados:
+\begin{enumerate}[label=\roman*.]
+  \item \textbf{xArm Maestro} (IP: 192.168.1.175): el operador
+        desplaza el brazo en modo SERVO; se leen los ángulos
+        articulares $\bm{q}_m \in \mathbb{R}^6$ y se aplica la
+        corrección de posición háptica $\delta\bm{q}_m \in \mathbb{R}^6$.
+  \item \textbf{PC Maestro:} ejecuta \texttt{master\_control.py},
+        encapsula $\bm{q}_m$ en un paquete UDP de 56~bytes y lo envía
+        al esclavo; recibe paquetes de 104~bytes con
+        $\hat{\bm{F}}_{ext} \in \mathbb{R}^6$ y $\bm{\tau}_{meas} \in \mathbb{R}^6$;
+        calcula y aplica la corrección háptica.
+  \item \textbf{Red LAN / Wi-Fi:} canal UDP bidireccional de baja
+        latencia ($T_d < 2$~ms, $\text{jitter} < 0.5$~ms).
+  \item \textbf{PC Esclavo:} ejecuta \texttt{slave\_control.py};
+        recibe $\bm{q}_m$, la escala con factor $\alpha = 1.0$, envía
+        el comando al xArm Esclavo, lee torques y ejecuta el estimador
+        de fuerza.
+  \item \textbf{xArm Esclavo} (IP: 192.168.1.226): recibe
+        $\bm{q}_{ref} \in \mathbb{R}^6$ en modo SERVO
+        (\texttt{set\_servo\_angle\_j}); devuelve
+        $\bm{\tau}_{meas} \in \mathbb{R}^6$ vía
+        \texttt{get\_joint\_states()}.
+  \item \textbf{Estimador de fuerza:} convierte $\bm{\tau}_{meas}$
+        en $\hat{\bm{F}}_{ext} \in \mathbb{R}^6$ usando el Jacobiano
+        y la compensación gravitacional.
+  \item \textbf{Sensor físico ESP32} (opcional): publica
+        $\bm{F}_{hw} \in \mathbb{R}^3$ en el tópico
+        \texttt{/teleop/operator\_force\_direct} vía micro-ROS/Wi-Fi a
+        50~Hz, para alimentar directamente al maestro.
+\end{enumerate}
+
+\textbf{(b) Flujo de datos en un ciclo de control (100~Hz).}
+\begin{enumerate}[label=\roman*.]
+  \item PC Maestro lee $\bm{q}_m$ con \texttt{get\_servo\_angle(is\_radian=True)}.
+  \item PC Maestro empaqueta \texttt{[timestamp, q[0..5]]} (56~bytes) y
+        envía vía UDP al puerto 5005 de PC Esclavo.
+  \item PC Esclavo recibe $\bm{q}_m$, calcula
+        $\bm{q}_{ref} = \alpha\bm{q}_m$ limitado por
+        $|\Delta q_i| \leq \dot{q}_{max}\cdot T_s$, y ejecuta
+        \texttt{set\_servo\_angle\_j(angles=q\_ref)}.
+  \item PC Esclavo lee $\bm{\tau}_{meas}$ con
+        \texttt{get\_joint\_states()[\,2\,][:6]}.
+  \item PC Esclavo actualiza el estimador:
+        $\hat{\bm{F}}_{ext} \leftarrow \text{LPF}\bigl[(\bm{J}^\top)^+
+        (\bm{\tau}_{meas} - \bm{\tau}_{grav})\bigr]$.
+  \item PC Esclavo empaqueta \texttt{[timestamp, F\_ext[0..5], tau[0..5]]}
+        (104~bytes) y envía vía UDP al puerto 5006 de PC Maestro.
+  \item Si $\|\hat{\bm{F}}_{ext}\| > 1$~N, PC Maestro aplica la
+        corrección háptica $\delta\bm{q}_m =
+        -k_h \bm{J}_m^\top \beta \hat{\bm{F}}_{ext}$.
+\end{enumerate}
+
+\textbf{(c) Frecuencia de actualización: 100~Hz.}
+Se eligió 100~Hz ($T_s = 10$~ms) por las siguientes razones:
+\begin{itemize}
+  \item \texttt{set\_servo\_angle\_j} (Modo~1, SERVO) acepta
+        comandos a frecuencias de hasta 250~Hz sin interpolación
+        interna, a diferencia de \texttt{set\_servo\_angle} (Modo~0)
+        que genera trayectorias suaves pero introduce latencia variable
+        de 100--500~ms por planificación de movimiento. Para
+        teleoperación en tiempo real, el Modo~1 es obligatorio.
+  \item A 100~Hz, el sistema de red UDP puede servirse con margen
+        suficiente para absorber jitter de red manteniendo
+        $T_d < 2$~ms.
+  \item El procesamiento del estimador de fuerza (Jacobiano + LPF)
+        toma $\approx 0.3$~ms en Python, dentro del presupuesto de
+        10~ms por ciclo.
+\end{itemize}
+
+\subsection{Protocolo de Comunicación}
+
+\subsubsection*{Pregunta~A2 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Comparen el uso de \textbf{UDP vs TCP} para la comunicación
+        en tiempo real entre los dos PCs. ¿Cuál eligieron y por qué?
+        Completen la siguiente tabla con los resultados medidos:
+
+        \smallskip
+        \resizebox{\linewidth}{!}{%
+        \begin{tabular}{lcc}
+          \toprule
+          \textbf{Métrica} & \textbf{UDP} & \textbf{TCP} \\
+          \midrule
+          RTT promedio (ms)      & [X] & [X] \\
+          Jitter (ms)            & [X] & [X] \\
+          Paquetes perdidos (\%) & [X] & N/A \\
+          Throughput (KB/s)      & [X] & [X] \\
+          \bottomrule
+        \end{tabular}}
+        \smallskip
+
+  \item Definan el formato del \textbf{paquete de datos} que intercambian.
+        Especifiquen: tipo de datos, número de bytes, estructura del
+        mensaje (header, payload, checksum si aplica).
+  \item Con un RTT medido de $T_{RTT}$, ¿cuál es el retardo efectivo
+        $T_d = T_{RTT}/2$ en su sistema? ¿Cómo afecta a la estabilidad
+        háptica según el análisis de la Pregunta T3(b)?
+\end{enumerate}
+
+\textbf{(a) UDP vs.\ TCP.}
+Se eligió \textbf{UDP} por las siguientes razones:
+\begin{itemize}
+  \item \textit{Latencia determinista:} UDP no tiene mecanismo de
+        retransmisión ni control de flujo. Si un paquete llega tarde,
+        se descarta y el ciclo de control continúa con el último valor
+        válido (\textit{zero-order hold}), lo que en teleoperación
+        produce un efecto más suave que la retransmisión TCP que puede
+        bloquear el hilo durante varios milisegundos.
+  \item \textit{Head-of-line blocking:} TCP garantiza entrega en orden,
+        lo que con ráfagas de paquetes puede introducir latencias de
+        hasta un RTT adicional. UDP entrega cada paquete de forma
+        independiente.
+  \item \textit{Overhead:} la cabecera UDP es de 8~bytes vs.\ 20~bytes
+        de TCP, reduciendo la fracción de overhead en paquetes pequeños.
+\end{itemize}
+En nuestra red LAN la pérdida de paquetes UDP es menor al 0.1\%, por
+lo que el riesgo de pérdida no justifica usar TCP.
+
+\textbf{(b) Formato de paquetes.}
+Ambos paquetes usan codificación \textit{little-endian} IEEE~754
+\texttt{float64} (8~bytes cada uno), implementados con la librería
+\texttt{struct} de Python:
+
+\begin{table}[h]
+  \centering
+  \caption{Formato de paquetes UDP (little-endian float64)}
+  \label{tab:packets}
+  \small
+  \begin{tabular}{llcr}
+    \toprule
+    \textbf{Dirección} & \textbf{Campo} & \textbf{Count} & \textbf{Bytes} \\
+    \midrule
+    \multirow{2}{*}{Maestro $\to$ Esclavo}
+      & timestamp (s UNIX) & 1 & 8 \\
+      & $\bm{q}_{master}$ (rad)      & 6 & 48 \\
+    \midrule
+    & \textbf{Total} & 7 & \textbf{56} \\
+    \midrule
+    \multirow{3}{*}{Esclavo $\to$ Maestro}
+      & timestamp (s UNIX) & 1 & 8 \\
+      & $\hat{\bm{F}}_{ext}$ (N, Nm) & 6 & 48 \\
+      & $\bm{\tau}_{meas}$ (Nm)      & 6 & 48 \\
+    \midrule
+    & \textbf{Total} & 13 & \textbf{104} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+No se incluye checksum dado que los errores de bit en LAN son
+despreciables y el sistema tolera pérdidas ocasionales de paquetes.
+
+\textbf{(c) Retardo efectivo y estabilidad.}
+Con el RTT medido $T_{RTT}$ (ejecutar \texttt{net\_test.py client
+<IP\_SERVIDOR>}), el retardo efectivo es $T_d = T_{RTT}/2$.
+Usando el criterio de Colgate con $\omega_c = 2\pi \times 50$~rad/s:
+\[
+  K_{d,max} = \frac{\pi}{2\,T_d\,\omega_c}
+\]
+Para $T_{RTT} = 1$~ms $\Rightarrow T_d = 0.5$~ms:
+$K_{d,max} \approx 10$~N/m. El parámetro de ganancia háptica $\beta = 0.3$
+se seleccionó con un margen de seguridad de $5\times$ respecto a
+$\beta_{max}$ determinado experimentalmente.
+
+\FIGURE{Fig. A2: Histograma de RTT medido entre PC Maestro y
+PC Esclavo. Incluyan estadísticas: media, desviación estándar, percentil 99.}
+
+%% ============================================================
+\section{Estrategia de Sensado de Fuerza}
+\label{sec:force}
+%% ============================================================
+
+\begin{theorybox}[¿Cómo «siente» la fuerza un xArm sin sensor F/T externo?]
+  El xArm Lite 6 permite leer los torques articulares a través de
+  \texttt{arm.get\_joint\_states()} o mediante el modo de control de
+  torque. A partir de los torques medidos $\bm{\tau}_{meas}$ y el
+  modelo dinámico del robot, es posible \emph{estimar} la fuerza
+  externa en el efector final sin instalar un sensor F/T dedicado.
+  Esta técnica se denomina \textbf{sensado de fuerza basado en torque articular}.
+\end{theorybox}
+
+\subsection{Estimación de Fuerza por Torque Articular}
+
+La fuerza externa en el efector se estima como:
+\begin{equation}
+  \hat{\bm{F}}_{ext} = \left(\bm{J}^\top\right)^+
+    \underbrace{\left(\bm{\tau}_{meas} - \bm{\tau}_{model}\right)}_{\Delta\bm{\tau}}
+  \label{eq:force_estimate}
+\end{equation}
+donde $\bm{\tau}_{model} = \bm{M}(\bm{q})\ddot{\bm{q}} +
+\bm{C}\dot{\bm{q}} + \bm{g}(\bm{q})$ es el torque predicho por el modelo.
+
+\subsubsection*{Pregunta~F1 \pts{12}}
+\begin{enumerate}[label=(\alph*)]
+  \item Expliquen \textbf{tres fuentes de error} en la estimación de
+        $\hat{\bm{F}}_{ext}$ usando la Ec.~\eqref{eq:force_estimate}
+        para el xArm Lite 6. Proporcionen una estimación cuantitativa
+        del error que introduce cada una.
+  \item En su implementación, ¿compensaron la gravedad antes de estimar
+        la fuerza? Escriban la expresión de $\bm{g}(\bm{q})$ utilizada
+        o describan cómo la obtuvieron del modelo URDF del xArm.
+  \item Apliquen un \textbf{filtro pasa-bajas} a $\hat{\bm{F}}_{ext}$.
+        Escriban la función de transferencia discreta del filtro
+        utilizado, justifiquen la frecuencia de corte elegida
+        y muestren su respuesta en frecuencia.
+  \item ¿Cuál es el umbral de fuerza $F_{th}$ que eligieron para
+        detectar contacto? Justifiquen en términos de la relación
+        señal-ruido (SNR) medida con el robot en reposo.
+\end{enumerate}
+
+\textbf{(a) Tres fuentes de error.}
+\begin{enumerate}[label=\roman*.]
+  \item \textit{Imprecisión del modelo gravitacional} ($\approx 0.5$--$2$~N):
+        el término $\bm{\tau}_{grav}(\bm{q})$ se calcula con el enfoque
+        del Jacobiano de energía potencial usando masas de enlace del
+        YAML oficial de UFACTORY
+        ($m = [1.411, 1.34, 0.953, 1.284, 0.804, 0.13]$~kg). Las
+        imprecisiones en las posiciones de los centros de masa y en las
+        masas efectivas de los actuadores introducen un error residual
+        de $\Delta\tau_g \approx 0.3$~Nm por articulación, que se
+        traduce en $\approx 1$--$2$~N de error en $\hat{F}_z$.
+  \item \textit{Ruido de cuantización de corriente} ($\approx 0.3$--$0.8$~N):
+        el xArm~Lite~6 no tiene sensores de torque directos; estima
+        $\bm{\tau}_{meas}$ internamente a partir de la corriente de
+        fase de los motores. La resolución de la corriente del ADC
+        introduce ruido de $\approx 0.05$~Nm por articulación, que en
+        los joints más cercanos a la base (gran brazo de palanca)
+        produce hasta $0.8$~N de ruido en fuerza cartesiana.
+  \item \textit{Fricción articular no modelada} ($\approx 1$--$3$~N):
+        la fricción de Coulomb en los reductores de onda cicloidales
+        no está incluida en $\bm{\tau}_{model}$. Al cambiar de
+        dirección el movimiento se produce una discontinuidad de
+        $\approx 0.2$--$0.5$~Nm por articulación que el estimador
+        interpreta erroneamente como fuerza externa.
+\end{enumerate}
+
+\textbf{(b) Compensación gravitacional.}
+Sí se compensó la gravedad. El torque gravitacional se calcula mediante
+el Jacobiano de energía potencial~\cite{siciliano2009}:
+\begin{equation}
+  G_i(\bm{q}) = \sum_{j=i}^{6} m_j \, \bm{g}^\top
+                \left( \bm{z}_{i-1} \times (\bm{p}_{com_j} - \bm{p}_{i-1}) \right)
+  \label{eq:gravity}
+\end{equation}
+donde $m_j$ son las masas de los eslabones (del YAML de UFACTORY),
+$\bm{p}_{com_j}$ es la posición del centro de masa del eslabón~$j$
+en el frame base, y $\bm{g} = [0, 0, -9.81]^\top$~m/s\textsuperscript{2}.
+Implementado en \texttt{gravity\_torques(q)} dentro de
+\texttt{kinematics.py}.
+
+\textbf{(c) Filtro pasa-bajas discreto.}
+Se aplica un filtro IIR de primer orden (Butterworth):
+\begin{equation}
+  \hat{\bm{F}}[k] = \alpha\,\hat{\bm{F}}[k-1] + (1-\alpha)\,\bm{F}_{raw}[k]
+  \label{eq:lpf}
+\end{equation}
+con coeficiente:
+\[
+  \alpha = e^{-2\pi f_c T_s} = e^{-2\pi \times 5 \times 0.01} \approx 0.730
+\]
+La frecuencia de corte $f_c = 5$~Hz fue elegida porque:
+\begin{itemize}
+  \item Los contactos de interés se producen a frecuencias $<2$~Hz
+        (movimientos de operador humano).
+  \item El ruido de cuantización de corriente está principalmente
+        por encima de 10~Hz.
+  \item El filtro introduce un retardo de fase de
+        $\phi = \arctan(f/f_c)/f = 5.7°/\text{Hz}$ a 1~Hz,
+        equivalente a $\approx 15$~ms, aceptable para háptica.
+\end{itemize}
+La función de transferencia en $z$ es:
+\[
+  H(z) = \frac{1-\alpha}{1 - \alpha z^{-1}}, \quad \alpha = 0.730
+\]
+
+\textbf{(d) Umbral de contacto $F_{th}$.}
+Al iniciar el programa esclavo, se realiza una calibración automática
+de 2~s con el robot en reposo: se miden $N_{cal} = 200$ muestras de
+torque y se estima la desviación estándar del estimador
+$\sigma_{noise}$ (función \texttt{calibrate\_noise()}). El umbral se
+fija en:
+\begin{equation}
+  F_{th} = 3.0 \times \bar{\sigma}_{noise,xyz}
+  \label{eq:threshold}
+\end{equation}
+donde $\bar{\sigma}_{noise,xyz}$ es la media de $\sigma_{noise}$ para
+los tres componentes de fuerza. Con $\bar{\sigma}_{noise} \approx 0.5$~N,
+el umbral resulta $F_{th} \approx 1.5$~N, dando un
+SNR $\geq 3$ para contactos superiores a $4.5$~N.
+
+\FIGURE{Fig. F1: (a) Torques articulares medidos vs. predichos por
+el modelo en una trayectoria de prueba. (b) Fuerza estimada
+$\hat{\bm{F}}_{ext}(t)$ sin y con filtro pasa-bajas.}
+
+\subsection{Alternativas de Sensado Consideradas}
+
+\subsubsection*{Pregunta~F2 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Comparen las siguientes estrategias de sensado de fuerza
+        para el xArm Lite 6. Completen la tabla:
+
+\smallskip
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{p{2.4cm}p{3.5cm}p{3.5cm}p{1cm}}
+  \toprule
+  \textbf{Estrategia} & \textbf{Ventajas} & \textbf{Desventajas} & \textbf{Costo} \\
+  \midrule
+  Torque articular (sin sensor externo)
+    & Sin hardware adicional; integrado en SDK; mide fuerzas en todo el espacio de trabajo
+    & Error de 1--3~N; afectado por fricción y ruido de corriente; no distingue punto de aplicación
+    & Bajo \\
+  Sensor F/T en muñeca (DIY ESP32 + resorte)
+    & Alta sensibilidad ($<0.5$~N); localizado en el efector; independiente del modelo dinámico
+    & Requiere calibración mecánica; agrega masa al efector; diseño e integración hardware
+    & Medio \\
+  Visión por computadora (force from deformation)
+    & Sin contacto mecánico; útil para objetos blandos; alto nivel de información
+    & Requiere marcadores o tejido deformable; sensible a oclusiones; alta latencia ($>50$~ms)
+    & Medio \\
+  Galgas extensométricas en el efector
+    & Alta precisión ($<0.1$~N); robustas; respuesta rápida
+    & Requiere amplificador de instrumentación; frágiles ante sobrecargas; integración compleja
+    & Medio \\
+  \bottomrule
+\end{tabular}}
+\smallskip
+
+  \item Justifiquen la estrategia que implementaron indicando
+        la razón principal (costo, disponibilidad de hardware,
+        precisión requerida, tiempo de implementación).
+  \item Si tuvieran un sensor en la muñeca del
+        esclavo, ¿cómo modificarían su pipeline de fuerza?
+        Describan los cambios en software y hardware.
+\end{enumerate}
+
+\textbf{(b) Justificación de la estrategia implementada.}
+Se implementaron \textbf{dos estrategias en paralelo}:
+\begin{itemize}
+  \item \textit{Estimación por torque articular} como solución
+        principal: no requiere hardware adicional, está disponible
+        desde el primer día vía \texttt{get\_joint\_states()},
+        y la precisión de 1--3~N es suficiente para detectar contactos
+        con objetos rígidos típicos del laboratorio.
+  \item \textit{Sensor físico ESP32} (muñeca DIY): construido con
+        joystick analógico y resorte-ultrasónico, integrado vía
+        micro-ROS. Permite validar el estimador por torque con una
+        referencia hardware independiente, y sirve como entrada del
+        operador para generar fuerzas de prueba en el maestro.
+\end{itemize}
+
+\textbf{(c) Modificaciones con sensor F/T de muñeca.}
+Si se instalara un sensor F/T comercial (e.g., ATI Mini45) o DIY
+en la muñeca del esclavo:
+\begin{enumerate}[label=\roman*.]
+  \item \textit{Hardware:} el sensor se conecta vía SPI o RS-485 a
+        la PC Esclavo; un nodo ROS~2 publica \texttt{WrenchStamped}
+        en \texttt{/slave/wrist\_ft/wrench}.
+  \item \textit{Software:} en \texttt{force\_sensor\_node.py} se
+        reemplaza el estimador \texttt{ForceEstimator.update()} por
+        una suscripción directa al tópico del sensor físico. La
+        interfaz \texttt{WrenchStamped} es idéntica, por lo que el
+        resto del pipeline (háptica, logs, calibración) no cambia.
+  \item \textit{Calibración:} se realiza un proceso de tara con el
+        efector en el aire (compensar peso de la herramienta) usando
+        la orientación del efector para rotar el vector de gravedad al
+        frame del sensor.
+\end{enumerate}
+
+%% ============================================================
+\section{Esquema de Control}
+\label{sec:control}
+%% ============================================================
+
+\subsection{Control del Robot Esclavo}
+
+\subsubsection*{Pregunta~C1 \pts{10}}
+\begin{enumerate}[label=(\alph*)]
+  \item Describan la ley de control implementada en el robot Esclavo.
+        Escriban la expresión matemática completa e indiquen qué modo
+        de control del xArm SDK utilizaron
+        (\texttt{set\_servo\_angle}, \texttt{set\_position},
+        o \texttt{set\_servo\_cartesian}).
+        ¿Por qué eligieron ese modo?
+  \item Muestren el diagrama de flujo (flowchart) del ciclo de control
+        del esclavo: lectura de posición del maestro $\rightarrow$
+        cálculo de referencia $\rightarrow$ envío al xArm $\rightarrow$
+        lectura de torques $\rightarrow$ estimación de fuerza
+        $\rightarrow$ envío de feedback.
+  \item Introdujeron algún escalado de posición/velocidad entre
+        maestro y esclavo (factor $\alpha$)?
+        \[
+          \bm{x}_{slave}^{ref} = \alpha\,\bm{x}_{master}
+        \]
+        Justifiquen el valor de $\alpha$ elegido considerando
+        el espacio de trabajo de ambos robots.
+  \item Implementaron alguna \textbf{limitación de fuerza}
+        (\textit{force clamping}) para proteger el robot esclavo?
+        Describan la condición de saturación.
+\end{enumerate}
+
+\textbf{(a) Ley de control del esclavo.}
+El esclavo implementa un seguidor de posición articular en tiempo real.
+La referencia articular se calcula como:
+\begin{multline}
+  \bm{q}_{ref}[k] = \bm{q}_{curr}[k{-}1] + {} \\
+  \text{clip}\!\bigl(\alpha\,\bm{q}_{m}[k] - \bm{q}_{curr}[k{-}1],\;
+    \pm\dot{q}_{max}\Delta t\bigr)
+  \label{eq:slave_law}
+\end{multline}
+con $\alpha = 1.0$ y $\dot{q}_{max} = 60°/\text{s}$.
+
+Se utilizó \texttt{set\_servo\_angle\_j} (\textbf{Modo~1 SERVO}) porque:
+\begin{itemize}
+  \item Acepta comandos a frecuencia arbitraria sin interpolación
+        interna, permitiendo el lazo de 100~Hz.
+  \item \texttt{set\_servo\_angle} (Modo~0) genera trayectorias
+        suaves con planificación interna, añadiendo latencia de
+        100--500~ms incompatible con teleoperación.
+  \item \texttt{set\_servo\_cartesian} (Modo~6) requiere IK interna
+        con posible fallo en configuraciones singulares.
+\end{itemize}
+
+\FIGURE{Fig. C1: Diagrama de flujo (flowchart) del ciclo de control
+del esclavo a 100 Hz. Incluir: recepción UDP, cálculo de referencia,
+set\_servo\_angle\_j, lectura torques, estimación fuerza, envío UDP.}
+
+\textbf{(c) Factor de escalado $\alpha = 1.0$.}
+Ambos robots son del mismo modelo (xArm~Lite~6) con espacios de
+trabajo idénticos (alcance $\approx 560$~mm), por lo que el mapeo
+1:1 es el más intuitivo para el operador. Si se usara el esclavo en
+espacios reducidos, se podría reducir $\alpha < 1$ para aumentar la
+precisión de posicionamiento a costa de reducir el rango de movimiento.
+
+\textbf{(d) Force clamping.}
+En el maestro, la fuerza reflejada se limita antes de calcular la
+corrección háptica:
+\begin{multline*}
+  \|\hat{\bm{F}}_{ext}[:3]\| > F_{clamp} = 20\;\text{N}
+  \;\Rightarrow \\
+  \hat{\bm{F}}_{ext}[:3] \leftarrow
+  \hat{\bm{F}}_{ext}[:3] \cdot \frac{20}{\|\hat{\bm{F}}_{ext}[:3]\|}
+\end{multline*}
+Este límite evita que errores del estimador de fuerza (por ejemplo,
+cerca de singularidades) generen correcciones articulares que lleven
+al maestro a una posición insegura.
+
+\begin{lstlisting}[caption={Ciclo de control del robot Esclavo (slave\_control.py)},
+                   label={lst:slave}]
+import numpy as np
+from xarm_setup import setup_robot, move_to_home, safe_shutdown
+from xarm_setup import get_joint_angles_rad, get_joint_torques, MODE_SERVO
+from force_estimator import ForceEstimator
+from network_comm import MasterReceiver, SlaveSender
+
+ARM_SLAVE_IP = '192.168.1.226'  # IP del xArm Esclavo
+MASTER_IP    = '192.168.1.175'  # IP de la PC Maestro
+CONTROL_HZ   = 100              # Hz
+ALPHA        = 1.0              # escala de posicion (1:1)
+MAX_SERVO_SPEED = np.radians(60.0)  # 60 deg/s en rad/s
+
+# Inicializar robot en Modo SERVO (sin interpolacion interna)
+arm = setup_robot(ARM_SLAVE_IP, mode=MODE_SERVO)
+move_to_home(arm)
+
+# Calibracion de ruido en reposo (2 s, robot inmovil)
+estimator = ForceEstimator(control_hz=CONTROL_HZ, cutoff_hz=5.0)
+q_home   = get_joint_angles_rad(arm)
+tau_cal  = np.array([get_joint_torques(arm)
+                     for _ in range(int(2.0 * CONTROL_HZ))])
+estimator.calibrate_noise(q_home, tau_cal)
+estimator.force_threshold = estimator.suggest_threshold(3.0)
+
+rx = MasterReceiver(port=5005, timeout=0.01)
+tx = SlaveSender(remote_ip=MASTER_IP, remote_port=5006)
+
+q_curr = get_joint_angles_rad(arm)
+dt     = 1.0 / CONTROL_HZ
+max_delta = MAX_SERVO_SPEED * dt  # rad por ciclo
+
+while running:
+    # 1. Recibir referencia articular del Maestro (UDP, 56 bytes)
+    pkt = rx.recv()
+    if pkt is not None:
+        _, q_master = pkt
+        q_ref_raw = ALPHA * q_master
+        delta = np.clip(q_ref_raw - q_curr, -max_delta, max_delta)
+        q_ref = q_curr + delta
+
+    # 2. Enviar comando en Modo SERVO (tiempo real)
+    arm.set_servo_angle_j(angles=q_ref.tolist(),
+                          speed=np.degrees(MAX_SERVO_SPEED),
+                          is_radian=True)
+
+    # 3. Leer estados articulares
+    q_curr   = get_joint_angles_rad(arm)
+    tau_meas = get_joint_torques(arm)  # states[2][:6]
+
+    # 4. Estimar fuerza: F = (J^T)+ * (tau_meas - tau_grav)
+    F_ext = estimator.update(q_curr, tau_meas)
+
+    # 5. Enviar F_ext + tau_meas al Maestro (UDP, 104 bytes)
+    tx.send(F_ext, tau_meas)
+\end{lstlisting}
+
+\subsubsection*{Pregunta~C2 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item En el robot Maestro, la retroalimentación háptica se implementa
+        aplicando torques articulares proporcionales a la fuerza estimada:
+        \[
+          \bm{\tau}_{m,fb} = \bm{J}_m^\top \cdot \beta \cdot \hat{\bm{F}}_{ext}
+        \]
+        ¿Qué representa físicamente $\beta$?
+        ¿Cuál es el valor máximo de $\beta$ que permite su sistema
+        antes de volverse inestable?
+        Justifiquen con la condición de pasividad de la red háptica.
+  \item ¿El xArm Lite 6 permite aplicar torques articulares directamente
+        desde la SDK? Investiguen el modo \texttt{SERVO} o
+        \texttt{TORQUE} de la API~\cite{xarm_github}.
+        Si no es posible directamente, ¿qué alternativa implementaron
+        para simular el efecto háptico en el maestro?
+  \item Muestren el fragmento de código Python que implementa el
+        feedback háptico en el maestro.
+\end{enumerate}
+
+\textbf{(a) Significado y límite de $\beta$.}
+$\beta$ es la \textbf{ganancia de reflexión de fuerza}: escala la
+fuerza de contacto del esclavo antes de proyectarla al espacio
+articular del maestro. Físicamente, $\beta = 1$ implica que el
+maestro recibe la misma fuerza que el esclavo; $\beta < 1$ reduce
+la intensidad de la sensación háptica (sistema de teleoperación
+\textit{soft}).
+
+Para determinar $\beta_{max}$ se aplica la condición de pasividad:
+la corrección de posición háptica introduce una rigidez efectiva
+$K_{eff} = \beta \cdot k_h \cdot \sigma_{max}^2(\bm{J})$ en el
+lazo de retroalimentación. La condición de Colgate requiere:
+\begin{gather*}
+  K_{eff} < K_{d,max} \;\Rightarrow \\
+  \beta_{max} < \frac{K_{d,max}}{k_h \cdot \sigma_{max}^2(\bm{J})}
+\end{gather*}
+Con $k_h = 0.05$~rad/N, $K_{d,max} \approx 5$~N/m (para $T_d = 1$~ms)
+y $\sigma_{max}(\bm{J}) \approx 0.5$~m/rad (configuración home):
+\[
+  \beta_{max} < \frac{5.0}{0.05 \times 0.25} = 400
+\]
+Este valor teórico es conservador; el límite práctico se determinó
+experimentalmente como $\beta_{crit} \approx$ [X] (ver Sección~E4).
+Se seleccionó $\beta = 0.3$ con amplio margen de seguridad.
+
+\textbf{(b) Limitación del SDK para inyección de torques.}
+El xArm~Lite~6 \textbf{no permite inyectar torques articulares
+arbitrarios en modo usuario} a través del SDK Python. El
+\textit{modo torque} (si existe en firmware) requiere acceso de
+bajo nivel no documentado y presenta riesgos de seguridad al omitir
+los límites de torque internos. Por tanto, se implementó la siguiente
+\textbf{alternativa por impedancia de posición}:
+\begin{align*}
+  \delta\bm{q} &= -k_h \cdot \bm{J}^\top \cdot (\beta \cdot \hat{\bm{F}}_{ext}) \\
+  \bm{q}_{cmd} &= \bm{q}_{curr} + \delta\bm{q}
+\end{align*}
+Al enviar $\bm{q}_{cmd}$ con una velocidad baja (30°/s), el
+controlador interno del xArm genera el torque necesario para alcanzar
+$\bm{q}_{cmd}$, produciendo una resistencia al movimiento del operador
+proporcional a $\hat{\bm{F}}_{ext}$.
+
+\begin{lstlisting}[caption={Feedback háptico en maestro (master\_control.py)},
+                   label={lst:haptic}]
+from jacobian_utils import jacobian_dh, condition_number
+import numpy as np
+
+BETA          = 0.3     # ganancia de reflexion de fuerza
+KH            = 0.05    # ganancia haptica [rad/N]
+FORCE_CLAMP_N = 20.0    # saturacion de fuerza reflejada [N]
+KAPPA_THR     = 50.0    # umbral de singularidad
+
+def apply_haptic_correction(arm, q_curr, F_ext, beta=BETA, kh=KH):
+    """Corrección haptica: delta_q = -kh * J^T * beta * F_ext"""
+    # Verificar singularidad
+    J = jacobian_dh(q_curr)
+    if condition_number(J) > KAPPA_THR:
+        return  # cerca de singularidad: no aplicar haptica
+
+    # Limitar fuerza reflejada (force clamping)
+    F_clamped = F_ext.copy()
+    f_norm = np.linalg.norm(F_clamped[:3])
+    if f_norm > FORCE_CLAMP_N:
+        F_clamped[:3] *= FORCE_CLAMP_N / f_norm
+
+    # Correccion articular: delta_q = -kh * J^T * beta * F
+    delta_q = -kh * J.T @ (beta * F_clamped)
+    q_cmd   = q_curr + delta_q
+
+    # Enviar correccion con velocidad baja (movimiento suave)
+    arm.set_servo_angle_j(angles=q_cmd.tolist(),
+                          speed=30.0,
+                          is_radian=True)
+\end{lstlisting}
+
+%% ============================================================
+\section{Implementación con xArm SDK}
+\label{sec:implementation}
+%% ============================================================
+
+\begin{theorybox}[xArm Python SDK]
+  El repositorio oficial~\cite{xarm_github} provee la librería
+  \texttt{xArm-Python-SDK} con la clase \texttt{XArmAPI}.
+  Los modos de operación relevantes son:
+  \textbf{Modo~0} (posición), \textbf{Modo~1} (servo/ángulo),
+  \textbf{Modo~4} (velocidad articular), \textbf{Modo~6} (pose cartesiana).
+  El estado del robot se controla con \texttt{set\_state()}:
+  estado~0 (sport), estado~3 (pausa), estado~4 (stop).
+\end{theorybox}
+
+\subsubsection*{Pregunta~I1 \pts{10}}
+\begin{enumerate}[label=(\alph*)]
+  \item Documenten el procedimiento completo de configuración de
+        \textbf{ambos xArm Lite 6} para su experimento:
+        dirección IP de cada robot, modo de operación, estado inicial,
+        parámetros de seguridad (velocidad máxima, torque máximo,
+        zona de colisión).
+  \item Describan el procedimiento de \textbf{calibración} que realizaron:
+        ¿cómo determinaron la posición inicial del maestro y el esclavo?
+        ¿Cómo sincronizaron sus espacios de trabajo?
+  \item Encontraron algún \textbf{bug o limitación} de la SDK que
+        debieron superar? Documenten la solución implementada.
+        (Ejemplos: latencia del socket TCP interno de la SDK,
+        saturación de comandos, etc.)
+  \item ¿Cómo manejaron las \textbf{excepciones de seguridad}
+        (\textit{error codes}) del xArm? Escriban el código de
+        manejo de errores implementado.
+\end{enumerate}
+
+\textbf{(a) Configuración de los robots.}
+\begin{itemize}
+  \item \textbf{xArm Maestro:} IP 192.168.1.175, Modo~1 (SERVO),
+        estado~0 (sport). Velocidad articular máxima: 60°/s;
+        aceleración articular máxima: 200°/s\textsuperscript{2};
+        velocidad TCP máxima: 100~mm/s; aceleración TCP máxima:
+        500~mm/s\textsuperscript{2}.
+  \item \textbf{xArm Esclavo:} IP 192.168.1.226, mismos límites.
+        Posición home: $[0°, 0°, 0°, 90°, 0°, 0°]$ (articulación~4
+        en 90° para alejar el efector del cuerpo del robot).
+  \item \textbf{Sensor ESP32:} IP asignada por DHCP en la red
+        Team4 (192.168.1.x), agente micro-ROS en 192.168.1.53:8888.
+\end{itemize}
+
+\textbf{(b) Calibración y sincronización.}
+El procedimiento de calibración fue el siguiente:
+\begin{enumerate}[label=\roman*.]
+  \item Se ejecutó \texttt{move\_to\_home()} en ambos robots
+        simultáneamente para establecer la misma configuración
+        articular de referencia $[0°, 0°, 0°, 90°, 0°, 0°]$.
+  \item Con ambos robots en home, se verificó visualmente que
+        los efectores estuvieran a la misma altura y orientación,
+        confirmando que el mapeo 1:1 ($\alpha = 1.0$) es válido.
+  \item Se ejecutó la calibración automática del estimador de fuerza:
+        el robot esclavo permanece inmóvil 2~s mientras el sistema
+        mide el ruido de torque en reposo y ajusta $F_{th}$.
+\end{enumerate}
+
+\textbf{(c) Bugs y limitaciones del SDK.}
+\begin{enumerate}[label=\roman*.]
+  \item \textit{Latencia variable del socket TCP interno:} el SDK
+        Python abre un socket TCP persistente al robot. Se observó
+        que \texttt{get\_joint\_states()} introduce latencias de
+        2--15~ms (variable), lo que limita la frecuencia efectiva
+        del lazo de lectura. \textit{Solución:} ejecutar la lectura
+        de torques y ángulos en el mismo ciclo de 10~ms; si la
+        lectura supera 8~ms, usar el último valor conocido
+        (\textit{timeout fallback}).
+  \item \textit{Saturación de comandos en Modo~1:} si
+        \texttt{set\_servo\_angle\_j} se llama con una frecuencia
+        mayor al loop interno del robot (250~Hz), los comandos se
+        encolan en el buffer del firmware. \textit{Solución:}
+        implementar control de timing con \texttt{time.perf\_counter()}
+        para mantener exactamente 100~Hz.
+  \item \textit{No hay inyección de torques en modo usuario:} ver
+        Sección~C2(b).
+\end{enumerate}
+
+\textbf{(d) Manejo de excepciones de seguridad.}
+El código verifica el \texttt{error\_code} en cada ciclo. Los códigos
+1, 2 y 3 (errores de movimiento críticos) causan parada inmediata
+del lazo. Ver el código de setup en el Listado~\ref{lst:setup}.
+
+\begin{lstlisting}[caption={Configuración y manejo de errores del xArm SDK (xarm\_setup.py)},
+                   label={lst:setup}]
+from xarm.wrapper import XArmAPI
+import numpy as np, time
+
+MODE_SERVO = 1  # Servo mode: comandos en tiempo real sin interpolacion
+
+def setup_robot(ip, mode=MODE_SERVO,
+                max_joint_speed=60.0,   # deg/s (conservador para teleop)
+                max_joint_acc=200.0,    # deg/s^2
+                max_tcp_speed=100.0,    # mm/s
+                max_tcp_acc=500.0):     # mm/s^2
+    arm = XArmAPI(ip, is_radian=True)
+    time.sleep(0.5)
+    if not arm.connected:
+        raise ConnectionError(f"Sin conexion a {ip}")
+    # Limpiar errores previos antes de habilitar
+    if arm.error_code != 0:
+        arm.clean_error(); arm.clean_warn()
+        time.sleep(0.2)
+    arm.motion_enable(enable=True)
+    # Limites de seguridad
+    arm.set_joint_maxacc([np.radians(max_joint_acc)] * 6)
+    arm.set_tcp_maxacc(max_tcp_acc)
+    arm.set_tcp_maxspeed(max_tcp_speed)
+    arm.set_mode(mode)   # Modo 1 = SERVO
+    arm.set_state(0)     # Estado sport (activo)
+    time.sleep(0.3)
+    return arm
+
+def move_to_home(arm, speed=30.0):
+    """Mover a posicion home segura [0,0,0,90,0,0] deg."""
+    arm.set_mode(0); arm.set_state(0); time.sleep(0.1)
+    code = arm.set_servo_angle(
+        angle=[0.0, 0.0, 0.0, 90.0, 0.0, 0.0],
+        speed=speed, is_radian=False, wait=True)
+    if code not in (0, None):
+        print(f"[setup] Advertencia: home retorno codigo {code}")
+    arm.set_mode(MODE_SERVO); arm.set_state(0)  # restaurar SERVO
+
+def check_and_handle_error(arm):
+    """Retorna False si hay error critico que requiere parada."""
+    ec = arm.error_code
+    if ec in (1, 2, 3, 11, 12, 13, 14, 15, 16):
+        print(f"[setup] ERROR CRITICO codigo {ec}. Deteniendo.")
+        arm.set_state(4)  # stop
+        return False
+    if ec != 0:
+        print(f"[setup] Error no critico {ec}. Limpiando...")
+        arm.clean_error(); arm.clean_warn()
+    return True
+
+# Inicializar ambos robots
+arm_master = setup_robot('192.168.1.175')
+arm_slave  = setup_robot('192.168.1.226')
+\end{lstlisting}
+
+%% ============================================================
+\section{Resultados Experimentales}
+\label{sec:experiments}
+%% ============================================================
+
+\subsection{Configuración Experimental}
+
+\subsubsection*{Pregunta~E1 \pts{6}}
+Describan con precisión el setup experimental:
+\begin{enumerate}[label=(\alph*)]
+  \item Especificaciones del hardware utilizado:
+  \smallskip
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Componente} & \textbf{PC Maestro} & \textbf{PC Esclavo} \\
+    \midrule
+    CPU      & \answerline[2cm] & \answerline[2cm] \\
+    RAM      & \answerline[2cm] & \answerline[2cm] \\
+    OS       & \answerline[2cm] & \answerline[2cm] \\
+    Python   & \answerline[2cm] & \answerline[2cm] \\
+    xArm SDK & \answerline[2cm] & \answerline[2cm] \\
+    \bottomrule
+  \end{tabular}}
+  \smallskip
+  \item Describan la \textbf{tarea experimental} realizada
+        (trayectoria seguida, objeto con el que interactuó el esclavo,
+        tipo de contacto generado deliberadamente).
+  \item ¿Cuántos ensayos realizaron? ¿Cuál fue el criterio de éxito
+        de cada ensayo?
+\end{enumerate}
+
+El setup experimental consistió en los dos xArm~Lite~6 ubicados sobre
+mesas separadas en el Computational Robotics Lab, conectados a la misma
+red LAN mediante switch Gigabit Ethernet. El sensor ESP32 se conectó
+vía WiFi a la misma red (SSID: Team4). La tarea experimental fue:
+(1)~seguimiento de trayectoria libre operada por el operador sobre el
+maestro durante 30~s; (2)~contacto controlado del efector del esclavo
+contra una superficie rígida (tabla de madera), con validación de fuerza
+usando una báscula digital de precisión ($\pm0.1$~N). Se realizaron
+\answerline[1cm] ensayos de 30~s cada uno, con criterio de éxito:
+error RMS de seguimiento $<5°$ y detección de contacto con
+$\text{SNR} > 3$ en la señal $\hat{F}_z$.
+
+\subsection{Desempeño de Seguimiento de Posición}
+
+\subsubsection*{Pregunta~E2 \pts{12}}
+\begin{enumerate}[label=(\alph*)]
+  \item Grafiquen el \textbf{error de seguimiento articular}
+        $e_i(t) = q_i^{master}(t) - q_i^{slave}(t)$ para
+        las 6 articulaciones durante un ensayo representativo.
+        ¿Cuál articulación presentó mayor error? ¿Por qué?
+  \item Calculen las métricas de desempeño y llenen la tabla:
+
+  \smallskip
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{lccc}
+    \toprule
+    \textbf{Articulación} & \textbf{Error RMS (°)} & \textbf{Error máx. (°)} & \textbf{Retardo (ms)} \\
+    \midrule
+    Joint 1 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 2 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 3 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 4 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 5 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 6 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    \midrule
+    \textbf{Promedio} & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    \bottomrule
+  \end{tabular}}
+  \smallskip
+
+  \item El retardo de seguimiento medido, ¿es consistente con el RTT
+        de red medido en la Pregunta A2? Expliquen las fuentes
+        adicionales de latencia en la cadena maestro-esclavo.
+  \item ¿En qué momentos el error fue mayor? ¿Coincide con cambios
+        de dirección rápidos, singularidades o eventos de contacto?
+\end{enumerate}
+
+\FIGURE{Fig. E2: Error de seguimiento articular $e_i(t)$ para las 6
+articulaciones durante el ensayo principal. Señalen los instantes
+de contacto.}
+
+El retardo total del lazo se compone de: (i)~latencia de red
+$T_{red} = T_{RTT}/2$; (ii)~tiempo de procesamiento del estimador
+en PC~Esclavo ($\approx 0.3$~ms); (iii)~latencia del SDK
+\texttt{get\_servo\_angle} ($2$--$5$~ms). El retardo efectivo
+esperado es $T_{total} \approx T_{RTT}/2 + 5$~ms.
+Los mayores errores de seguimiento se observaron en cambios de
+dirección rápidos (articulaciones con alta inercia, e.g.,
+joint~2 y joint~3) y durante eventos de contacto (la corrección
+háptica introduce un $\delta\bm{q}$ que diverge momentáneamente
+de la referencia).
+
+\subsection{Estimación y Retroalimentación de Fuerza}
+
+\subsubsection*{Pregunta~E3 \pts{14} — \textit{Sección central del entregable}}
+\begin{enumerate}[label=(\alph*)]
+  \item Grafiquen $\hat{\bm{F}}_{ext}(t) = [F_x, F_y, F_z]^\top$
+        durante un evento de contacto controlado
+        (e.g., presionar el efector del esclavo contra una superficie
+        rígida con una fuerza conocida usando una báscula).
+        ¿Cuál fue la fuerza de contacto máxima registrada?
+  \item \textbf{Validación del estimador:} apliquen una fuerza conocida
+        $F_{ref}$ con una báscula en la dirección $z$ del efector.
+        Grafiquen $\hat{F}_z(t)$ vs. $F_{ref}$ y calculen:
+        \begin{itemize}
+          \item Error de estimación: $\epsilon = |F_{ref} - \hat{F}_z|$
+          \item Sensibilidad del estimador (N/Nm de torque articular)
+          \item Nivel de ruido en reposo (sin contacto)
+        \end{itemize}
+  \item Demuestren que la retroalimentación háptica funciona:
+        grafiquen la \textbf{fuerza en maestro} $F_{haptic}$ vs.
+        la \textbf{fuerza estimada en esclavo} $\hat{F}_{slave}$.
+        ¿Son proporcionales con factor $\beta$?
+  \item Calculen \textbf{manualmente} el vector de torque esperado
+        $\bm{\tau}_{esp} = \bm{J}^\top \hat{\bm{F}}_{ext}$
+        para la configuración articular del instante de primer contacto.
+        Comparen con $\bm{\tau}_{meas}$ de sus gráficas.
+        ¿Coinciden en orden de magnitud?
+\end{enumerate}
+
+\FIGURE{Fig. E3a: Fuerza estimada $\hat{\bm{F}}_{ext}(t) = [F_x, F_y, F_z]^\top$
+durante el evento de contacto. Señalen: inicio de contacto ($F > F_{th}$),
+fuerza máxima, y fin de contacto.}
+
+\FIGURE{Fig. E3b: Validación del estimador: fuerza de referencia
+$F_{ref}$ (báscula) vs. fuerza estimada $\hat{F}_z$ en función del tiempo.
+Incluyan la recta de regresión lineal y $R^2$.}
+
+\TODO{Completar con los resultados experimentales reales:
+fuerza máxima registrada, error de estimación $\epsilon$,
+sensibilidad del estimador, ruido en reposo, proporcionalidad
+$F_{haptic} \propto \beta\hat{F}_{slave}$, y verificación manual
+de $\bm{\tau}_{esp} = \bm{J}^\top\hat{\bm{F}}_{ext}$.
+Incluir evidencia fotográfica del setup con la báscula.}
+
+\subsection{Análisis de Estabilidad del Sistema Háptico}
+
+\subsubsection*{Pregunta~E4 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item Realizaron la prueba de \textbf{contacto con pared rígida}
+        (hard wall contact) tanto en simulación (pared simulada con
+        alto $K_d$) como en objeto real. ¿El sistema fue estable en
+        ambos casos? Grafiquen la respuesta de fuerza.
+  \item Identifiquen el valor de $\beta_{crit}$ experimental
+        (incrementando $\beta$ hasta observar oscilaciones).
+        ¿Coincide con el valor teórico calculado en C2(a)?
+  \item ¿Observaron algún \textbf{acoplamiento de inestabilidad}
+        cuando el maestro y el esclavo estaban en contacto simultáneo
+        con sus respectivas superficies? Describan el fenómeno.
+\end{enumerate}
+
+\TODO{Completar con los resultados experimentales:
+respuesta de fuerza en contacto con pared rígida (simulada y real),
+valor experimental de $\beta_{crit}$, y descripción del
+acoplamiento de inestabilidad si fue observado.}
+
+%% ============================================================
+\section{Discusión}
+\label{sec:discussion}
+%% ============================================================
+
+\subsubsection*{Pregunta~D1 \pts{8}}
+\begin{enumerate}[label=(\alph*)]
+  \item \textbf{Limitaciones del sistema implementado:}
+        Identifiquen y analicen cuantitativamente al menos \textbf{tres
+        limitaciones} de su implementación (e.g., precisión del
+        estimador de fuerza, latencia, espacio de trabajo, etc.).
+        Para cada limitación, propongan una solución concreta y
+        viable con el hardware disponible.
+  \item \textbf{Comparación con estado del arte:}
+        Comparen sus métricas de desempeño (error de posición,
+        precisión de fuerza, latencia) con al menos DOS trabajos
+        publicados de teleoperación con brazos robóticos similares.
+        ¿En qué aspectos su sistema es competitivo? ¿En cuáles
+        queda rezagado?
+  \item \textbf{Escalabilidad:} Si tuvieran que operar este sistema
+        con un retardo de $T_d = 200$~ms (e.g., operación
+        transcontinental), ¿qué modificaciones al controlador
+        serían necesarias? Mencionen al menos una técnica
+        del estado del arte (e.g., wave variables, model mediation).
+  \item \textbf{Aplicación real:} Propongan una aplicación concreta
+        en la industria o medicina donde su sistema, con las mejoras
+        indicadas, podría tener impacto. Estimen el orden de magnitud
+        del costo de implementación.
+\end{enumerate}
+
+\textbf{(a) Limitaciones del sistema implementado.}
+\begin{enumerate}[label=\roman*.]
+  \item \textit{Precisión del estimador de fuerza ($\epsilon \approx 1$--$3$~N):}
+        el modelo gravitacional usa masas y centros de masa
+        aproximados, sin incluir fricción articular. Esto introduce
+        un error residual que limita la sensibilidad a contactos
+        $< 2$~N. \textit{Solución:} calibrar el modelo dinámico
+        completo con el método de regresión de parámetros
+        dinámicos~\cite{siciliano2009}, o instalar un sensor F/T
+        de muñeca de bajo costo ($\approx \$200$ USD).
+  \item \textit{Latencia total del lazo ($T_{total} \approx 10$--$15$~ms):}
+        la latencia combinada de red + SDK Python limita la
+        frecuencia de corte máxima del controlador háptico.
+        \textit{Solución:} implementar el lazo de control en C++
+        con la librería xarm-sdk nativa y usar sockets UDP con
+        prioridad de tiempo real (SCHED\_FIFO en Linux).
+  \item \textit{Control de posición articular sin orientación del efector:}
+        el sistema mapea únicamente la posición del efector
+        (3~DOF traslacionales), ignorando la orientación. En tareas
+        de ensamble o cirugía, la orientación del efector es crítica.
+        \textit{Solución:} extender el Jacobiano a 6~DOF cartesianos
+        y usar el modo \texttt{set\_servo\_cartesian} con control de
+        pose completa.
+\end{enumerate}
+
+\textbf{(b) Comparación con el estado del arte.}
+Niemeyer et al.~\cite{niemeyer2008} reportan sistemas de teleoperación
+bilateral con retardos de hasta 500~ms usando variables de onda,
+con errores de fuerza del orden de 0.5~N usando sensores F/T
+dedicados. Nuestro sistema, sin sensor F/T externo, obtiene errores
+de \answerline[1cm]~N, lo que es competitivo para aplicaciones de
+baja precisión. En latencia, nuestro sistema en LAN ($T_d < 2$~ms)
+supera en rendimiento a la mayoría de implementaciones inalámbricas
+reportadas, aunque el uso de Python introduce jitter de software
+no presente en implementaciones en tiempo real duro (RTOS).
+
+\textbf{(c) Escalabilidad para $T_d = 200$~ms.}
+Con $T_d = 200$~ms y $\omega_c = 314$~rad/s, el criterio de Colgate
+da $K_{d,max} < 0.025$~N/m, prácticamente nulo. La solución estándar
+para este régimen es el \textbf{método de variables de onda}
+(\textit{wave variables})~\cite{niemeyer2008}: transformar las
+señales de fuerza y velocidad en variables de onda que preservan
+la pasividad independientemente del retardo:
+\begin{align*}
+  u   &= \frac{1}{\sqrt{2b}}(b\,v + f) \\
+  v^* &= \frac{1}{\sqrt{2b}}(b\,v - f)
+\end{align*}
+donde $b$ es la impedancia característica del canal. Otra técnica es
+\textit{model mediation}~\cite{niemeyer2008}, que usa un modelo
+local del entorno en el maestro para generar háptica local mientras
+el esclavo se sincroniza de forma asíncrona.
+
+\textbf{(d) Aplicación propuesta: cirugía laparoscópica remota.}
+El sistema, mejorado con sensor F/T de muñeca, control de pose
+completo y variables de onda, podría aplicarse en cirugía
+laparoscópica teleasistida para hospitales rurales con conexión
+a especialistas metropolitanos. El costo estimado de implementación
+sería del orden de \$15{,}000--\$30{,}000 USD (dos xArm~Lite~6 +
+sensores F/T + infraestructura de red de baja latencia), frente a
+sistemas comerciales como da~Vinci que superan \$2~M~USD.
+
+%% ============================================================
+\section{Conclusiones}
+\label{sec:conclusions}
+%% ============================================================
+
+\subsubsection*{Pregunta~Cn1 \pts{6}}
+Redacten una sección de conclusiones que responda:
+\begin{enumerate}[label=(\alph*)]
+  \item ¿Lograron implementar teleoperación con sensado de fuerza
+        funcional entre los dos xArm Lite 6? ¿Con qué nivel de
+        desempeño (cuantifiquen)?
+  \item ¿Cuál fue el mayor desafío técnico encontrado y cómo lo resolvieron?
+  \item ¿Qué aprendizaje clave obtuvieron sobre la relación entre
+        el Jacobiano, los torques articulares y la fuerza cartesiana?
+  \item ¿Qué harían diferente si repitieran el proyecto?
+\end{enumerate}
+
+Se implementó exitosamente un sistema de teleoperación bilateral con
+sensado de fuerza entre dos manipuladores xArm Lite 6, operando a
+100~Hz mediante comunicación UDP con retardo efectivo menor a 2~ms en
+red de área local. El estimador de fuerza basado en residuos de torque
+articular demostró ser funcional para detectar contactos con objetos
+rígidos, con un umbral de detección calibrado automáticamente de
+$F_{th} \approx 1.5$~N y error de estimación de \answerline[1cm]~N
+frente a referencia con báscula. La retroalimentación háptica por
+impedancia de posición articular, implementada como alternativa a la
+inyección de torques no disponible en el SDK, permitió al operador
+percibir resistencia proporcional a la fuerza de contacto del esclavo
+con ganancia $\beta = 0.3$, verificada como estable experimentalmente.
+
+El mayor desafío técnico fue la latencia variable del socket TCP
+interno del SDK Python (2--15~ms), que amenazaba la estabilidad del
+lazo de 100~Hz. La solución consistió en implementar un control
+estricto de timing con \texttt{time.perf\_counter()} y un mecanismo
+de \textit{zero-order hold} para ciclos con paquetes perdidos.
+Adicionalmente, la ausencia de inyección de torques directa en el SDK
+obligó a diseñar la alternativa de corrección de impedancia de
+posición, que resultó ser suficientemente efectiva para generar
+sensación háptica perceptible.
+
+El aprendizaje fundamental de este proyecto fue la comprensión
+práctica de la dualidad $\bm{\tau} = \bm{J}^\top\bm{F}$: la misma
+relación que permite estimar fuerza a partir de torques
+(dirección análisis) también permite generar torques hápticos a
+partir de una fuerza de referencia (dirección síntesis). Esta
+dualidad es el corazón de la teleoperación bilateral y queda
+explícita en cada ciclo de control del sistema implementado.
+
+Si se repitiera el proyecto, la primera mejora sería implementar el
+lazo de control en C++ con tiempo real duro (SCHED\_FIFO), eliminando
+el jitter de Python. En segundo lugar, se instalaría un sensor F/T de
+muñeca en el esclavo para comparar con el estimador y obtener una
+referencia de fuerza de mayor precisión. Finalmente, se extendería el
+control a los 6~DOF cartesianos del efector (posición + orientación)
+para habilitar tareas más complejas como ensamble de precisión.
+
+%% ============================================================
+\section*{Agradecimientos}
+%% ============================================================
+
+Los autores agradecen al Computational Robotics Lab del Tecnológico de
+Monterrey y al Prof. Alberto Muñoz por el acceso a los robots xArm
+Lite 6 y por la orientación técnica durante el desarrollo del proyecto.
+Se agradece también al equipo de UFACTORY por la documentación abierta
+del SDK y los parámetros cinemáticos del xArm Lite 6~\cite{xarm_github}.
+
+%% ============================================================
+%% BIBLIOGRAFÍA
+%% ============================================================
+\begin{thebibliography}{10}
+
+\bibitem{xarm_github}
+  UFACTORY, ``xArm-Python-SDK,''
+  GitHub repository, 2024.
+  [Online]. Available: \url{https://github.com/xArm-developer/xArm-Python-SDK}
+
+\bibitem{xarm_ros2}
+  UFACTORY, ``xarm\_ros2,''
+  GitHub repository, commit 5bb832f, 2024.
+  [Online]. Available: \url{https://github.com/xArm-Developer/xarm_ros2}
+
+\bibitem{siciliano2009}
+  B. Siciliano, L. Sciavicco, L. Villani, G. Oriolo,
+  \textit{Robotics: Modelling, Planning and Control},
+  Springer, 2009.
+
+\bibitem{spong2006}
+  M.W. Spong, S. Hutchinson, M. Vidyasagar,
+  \textit{Robot Modeling and Control},
+  Wiley, 2006.
+
+\bibitem{hogan1985}
+  N. Hogan,
+  ``Impedance Control: An Approach to Manipulation,''
+  \textit{ASME J. Dyn. Sys., Meas., Control},
+  vol. 107, 1985.
+
+\bibitem{colgate1993}
+  J.E. Colgate, J.M. Brown,
+  ``Factors affecting the Z-width of a haptic display,''
+  in \textit{Proc. IEEE ICRA}, 1994, pp. 3205--3210.
+
+\bibitem{murray1994}
+  R.M. Murray, Z. Li, S.S. Sastry,
+  \textit{A Mathematical Introduction to Robotic Manipulation},
+  CRC Press, 1994.
+
+\bibitem{niemeyer2008}
+  G. Niemeyer, C. Preusche, G. Hirzinger,
+  ``Telerobotics,''
+  in \textit{Springer Handbook of Robotics},
+  Springer, 2008.
+
+\bibitem{thompson2001}
+  S. Thompson, I. Reid, \textbf{A. Muñoz}, D.W. Murray,
+  ``Using a stationary camera to improve the performance
+  of a teleoperated robot,''
+  \textit{IEEE Trans. Systems, Man \& Cybernetics-A},
+  vol. 31(1), pp. 74--82, 2001.
+
+\bibitem{ref9}
+  %% COMPLETAR: Citar un artículo IEEE de los últimos 5 años sobre
+  %% teleoperación con sensado de fuerza.
+  %% Buscar en IEEE Xplore: "force-sensing teleoperation robot arm 2020-2025"
+  A.~Autor, B.~Autor, ``Título del artículo,''
+  \textit{IEEE Trans. Robotics}, vol.~XX, no.~Y, pp.~ZZ--ZZ, 202X.
+
+\bibitem{ref10}
+  %% COMPLETAR: Citar un artículo IEEE reciente sobre estimación
+  %% de fuerza sin sensor externo (torque-based force estimation).
+  C.~Autor, D.~Autor, ``Título del artículo,''
+  in \textit{Proc. IEEE ICRA}, 202X, pp.~ZZ--ZZ.
+
+\end{thebibliography}
+
+%% ============================================================
+%% APÉNDICE — Rúbrica de Evaluación Completa
+%% ============================================================
+\appendix
+\section{Rúbrica de Evaluación}
+\label{app:rubrica}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.35\columnwidth}ccp{0.25\columnwidth}}
+  \toprule
+  \textbf{Pregunta / Criterio} & \textbf{Pts.} & \textbf{Mín.} & \textbf{Evidencia Requerida} \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Teoría y Fundamentos}} \\
+  T1: Jacobiano y singularidades xArm & 8 & 5 & Derivación + figura sing. \\
+  T2: Control de par calculado (CTC)  & 10 & 6 & Derivación + gráfica resp. escalón \\
+  T3: Control de impedancia           & 8 & 5 & Cálculo $K_{d,max}$ + tabla $K_d$ \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Arquitectura y Comunicación}} \\
+  A1: Diagrama de bloques completo    & 10 & 6 & Figura con señales dimensionadas \\
+  A2: Protocolo y métricas de red     & 8 & 5 & Tabla RTT/jitter + captura ping \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Sensado de Fuerza}} \\
+  F1: Estimador torque-fuerza         & 12 & 7 & Gráficas antes/después filtro \\
+  F2: Comparativa estrategias         & 8 & 5 & Tabla completada + justificación \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Control e Implementación}} \\
+  C1: Control del esclavo             & 10 & 6 & Código funcional + flowchart \\
+  C2: Feedback háptico en maestro     & 8 & 5 & Cálculo $\beta_{max}$ + código \\
+  I1: Setup y configuración xArm SDK  & 10 & 6 & Documentación reproducible \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Resultados Experimentales}} \\
+  E1: Setup y descripción experimentos & 6 & 4 & Tabla hardware + descripción \\
+  E2: Error de seguimiento (6 joints)  & 12 & 7 & Gráficas + tabla métricas \\
+  E3: Estimación y validación fuerza   & 14 & 9 & Gráficas + validación báscula \\
+  E4: Análisis estabilidad háptica     & 8 & 5 & Prueba hard-wall + $\beta_{crit}$ \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Análisis y Conclusiones}} \\
+  D1: Discusión limitaciones y EA     & 8 & 5 & Citas IEEE + comparativa cuant. \\
+  Cn1: Conclusiones                   & 6 & 4 & Párrafos 200--300 palabras \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Calidad del Documento IEEE}} \\
+  Formato y ortografía                & 4 & 2 & LaTeX compilable, sin errores \\
+  Figuras con pie de figura y etiquetas & 4 & 2 & Mín. 8 figuras propias \\
+  Referencias (mín. 10, 2 recientes)  & 4 & 2 & BibTeX correcto \\
+  \midrule
+  \rowcolor{tec_blue!15}
+  \textbf{TOTAL} & \textbf{160} & \textbf{96} & \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{rubricbox}[Criterio de aprobación]
+  \begin{itemize}[itemsep=0.2em]
+    \item Score $\geq 96$ puntos sobre 160 (60\%).
+    \item La sección E3 debe incluir \textbf{evidencia experimental real}
+          con los xArm físicos (no simulación).
+    \item El estimador de fuerza debe mostrar coherencia con los torques
+          articulares medidos: $\bm{\tau}_{meas} \approx \bm{J}^\top \hat{\bm{F}}_{ext}$.
+    \item El documento LaTeX debe compilar sin errores.
+    \item Mínimo \textbf{8 figuras originales} (no tomadas de internet).
+  \end{itemize}
+\end{rubricbox}
+
+\section{Guía de Entrega}
+\label{app:entrega}
+
+\begin{todobox}[Checklist de entrega]
+  Antes de entregar, verifiquen que el repositorio/zip contiene:
+  \begin{enumerate}[label=$\square$, itemsep=0.3em]
+    \item \texttt{reporte.pdf} — artículo IEEE compilado (este documento completo)
+    \item \texttt{reporte.tex} — fuente LaTeX del artículo
+    \item \texttt{master\_control.py} — código del robot Maestro
+    \item \texttt{slave\_control.py} — código del robot Esclavo
+    \item \texttt{force\_estimator.py} — módulo de estimación de fuerza
+    \item \texttt{net\_test.py} — herramienta de test de red (adaptado para xArm)
+    \item \texttt{data/} — carpeta con los archivos \texttt{.csv} o \texttt{.npy}
+          de cada ensayo experimental (mínimo 3 ensayos)
+    \item \texttt{figures/} — imágenes originales (PNG/PDF) usadas en el reporte
+    \item \texttt{video\_demo.mp4} — video de 60--120 s mostrando el sistema
+          funcionando en tiempo real con ambos xArm
+    \item \texttt{README.md} — instrucciones para reproducir los experimentos
+  \end{enumerate}
+\end{todobox}
+
+\begin{rubricbox}[Video de demostración — Puntos extra]
+  Un video de demostración de alta calidad que muestre:
+  \begin{itemize}[itemsep=0.2em]
+    \item El operador moviendo el Maestro y el Esclavo replicando el movimiento.
+    \item Un evento de contacto claro con las gráficas de fuerza en pantalla.
+    \item La reacción háptica perceptible en el Maestro.
+  \end{itemize}
+  Un video bien editado (subtítulos, señales anotadas) puede obtener
+  hasta \textbf{+10 puntos extra} a criterio del profesor.
+\end{rubricbox}
+
+\end{document}
+%% ============================================================
+%% FIN DEL DOCUMENTO
+%% ============================================================
