@@ -67,7 +67,7 @@ static void calibrateUltrasonic() {
             sum += d;
             valid++;
         }
-        delay(20);  // 50 Hz sampling
+        delay(20);
     }
     if (valid >= CAL_SAMPLES / 2) {
         restDistCm = sum / valid;
@@ -90,9 +90,8 @@ static void readSensors() {
     if (lastDist > 0.0f) {
         float delta = restDistCm - lastDist;          // cm, signed
         if (fabsf(delta) < DIST_DEADBAND_CM) {
-            forceZ = 0.0f;                            // within rest deadband
+            forceZ = 0.0f;
         } else {
-            // Subtract deadband so force starts from zero at the edge
             float sign = (delta > 0.0f) ? 1.0f : -1.0f;
             float fz = springK * (fabsf(delta) - DIST_DEADBAND_CM) / 100.0f * sign;
             forceZ = (fabsf(fz) < FORCE_Z_MIN_N) ? 0.0f : fz;
@@ -117,9 +116,9 @@ static void timerCallback(rcl_timer_t* /*t*/, int64_t /*last*/) {
     int64_t ns = rmw_uros_epoch_nanos();
     msg.header.stamp.sec     = (int32_t)(ns / 1000000000LL);
     msg.header.stamp.nanosec = (uint32_t)(ns % 1000000000LL);
-    msg.wrench.force.x = -forceX;
-    msg.wrench.force.y = -forceY;
-    msg.wrench.force.z = forceZ;
+    msg.wrench.force.x = -forceY;
+    msg.wrench.force.y = -forceX;
+    msg.wrench.force.z = -forceZ;
 
     rcl_publish(&publisher, &msg, NULL);
 
@@ -136,7 +135,7 @@ static void timerCallback(rcl_timer_t* /*t*/, int64_t /*last*/) {
 static bool createEntities() {
     allocator = rcl_get_default_allocator();
     RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
-    RCCHECK(rclc_node_init_default(&node, "force_sensor_hw", "", &support));
+    RCCHECK(rclc_node_init_default(&node, "slave_force_sensor_hw", "", &support));
     RCCHECK(rclc_publisher_init_best_effort(
         &publisher, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, WrenchStamped),
@@ -150,7 +149,6 @@ static bool createEntities() {
 
     rmw_uros_sync_session(1000);
 
-    // frame_id points to static string — safe across callbacks
     msg.header.frame_id.data     = (char*)FRAME_ID;
     msg.header.frame_id.size     = strlen(FRAME_ID);
     msg.header.frame_id.capacity = strlen(FRAME_ID) + 1;
@@ -221,11 +219,10 @@ void loop() {
     // micro-ROS reconnection state machine
     switch (agentState) {
         case WAITING_AGENT:
-            // 500 ms timeout, 3 attempts — tolerates WiFi jitter
             if (rmw_uros_ping_agent(500, 3) == RMW_RET_OK)
                 agentState = AGENT_AVAILABLE;
             else
-                delay(500);   // don't hammer the network while waiting
+                delay(500);
             break;
 
         case AGENT_AVAILABLE:
@@ -234,8 +231,6 @@ void loop() {
             break;
 
         case AGENT_CONNECTED:
-            // Only ping every ~2 s (every 100 spin cycles × ~20 ms each)
-            // A single missed ping no longer causes a disconnect
             rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
             if (rmw_uros_ping_agent(200, 3) != RMW_RET_OK) {
                 agentState = AGENT_DISCONNECTED;

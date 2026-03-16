@@ -106,7 +106,7 @@ class MasterAdmittanceNode(Node):
         self.create_subscription(
             WrenchStamped, slave_force_topic, self._slave_force_cb, 10)
         self.create_subscription(
-            WrenchStamped, slave_override_topic, self._slave_override_force_cb, 10)
+            WrenchStamped, slave_override_topic, self._slave_override_force_cb, _be_qos)
         self.create_subscription(
             JointState, joint_states_topic, self._js_cb, 10)
 

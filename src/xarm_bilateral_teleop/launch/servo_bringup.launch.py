@@ -284,8 +284,8 @@ def launch_setup(context, *args, **kwargs):
             'control_msgs/action/FollowJointTrajectory',
             '{"trajectory": {"joint_names": '
             '["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"], '
-            '"points": [{"positions": [0.0, -0.5, 0.1, 0.0, 0.8, 0.0], '
-            '"time_from_start": {"sec": 3, "nanosec": 0}}]}}'
+            '"points": [{"positions": [0.0, 0.0, 0.5, 0.0, 0.5, 0.0], '
+            '"time_from_start": {"sec": 4, "nanosec": 0}}]}}'
         ],
         output='screen',
     )
