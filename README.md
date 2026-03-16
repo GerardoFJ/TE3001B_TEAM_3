@@ -116,7 +116,7 @@ ros2 run micro_ros_agent micro_ros_agent udp4 -p 8889 &   # slave sensor
 **With real robots:**
 ```bash
 ros2 launch xarm_bilateral_teleop bilateral_teleop.launch.py \
-    master_ip:=192.168.1.175 slave_ip:=192.168.1.226
+    master_ip:=192.168.1.XXX slave_ip:=192.168.1.XXX
 ```
 
 **With Isaac Sim (no physical robots):**
