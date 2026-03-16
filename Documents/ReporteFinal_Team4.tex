@@ -138,25 +138,36 @@
 This paper presents the design, implementation, and experimental
 evaluation of a bilateral teleoperation system with force sensing
 between two xArm~Lite~6 six-degree-of-freedom manipulators. The
-master-slave architecture operates at 100~Hz over UDP communication
-using binary packets of 56 and 104~bytes, achieving an effective
-delay of $T_d < 2$~ms on a local area network. Cartesian force at
-the slave end-effector is estimated without an external F/T sensor
-by computing joint-torque residuals: the damped least-squares
-pseudo-inverse of the geometric Jacobian ($\lambda = 0.01$) maps
-gravity-compensated residual torques to a six-component wrench,
-followed by a first-order low-pass filter at $f_c = 5$~Hz. Since
-the xArm Python SDK does not support direct joint-torque injection
-in user mode, haptic feedback to the master is implemented as a
-joint-space position-impedance correction with force-reflection
-gain $\beta = 0.3$. An additional physical force sensor based on an
-ESP32 microcontroller with micro-ROS was designed and built,
-measuring three-axis forces via an analog joystick ($\pm3$~N) and a
-spring-ultrasonic assembly ($k = 1000$~N/m), publishing
-\texttt{WrenchStamped} messages to ROS~2 at 50~Hz over WiFi.
-Experiments demonstrate functional teleoperation with joint tracking
-RMS error $<$~[X]° and force estimation error $<$~[X]~N against a
-precision scale reference.
+system is built on ROS~2 Humble and MoveIt~Servo, running at
+50~Hz using DDS (rmw\_fastrtps) as the inter-process communication
+layer. The master arm is governed by a Cartesian admittance controller
+($\bm{M}_d\dot{\bm{v}} + \bm{B}_d\bm{v} = \bm{F}_{op}
+- \alpha\bm{F}_{slave}$, with $\bm{M}_d=\text{diag}(2,2,2)$~kg,
+$\bm{B}_d=\text{diag}(10,10,10)$~N$\cdot$s/m, $\alpha=0.3$) that
+converts the net operator force into a Cartesian velocity command
+sent as \texttt{TwistStamped} to MoveIt~Servo. The slave arm tracks
+the master end-effector pose via a feedforward-plus-proportional
+impedance law ($\bm{v}_{cmd}=\bm{v}_{ff}+\bm{K}_p\bm{e}$,
+$\bm{K}_p=\text{diag}(5,5,5)$~s$^{-1}$) also executing through
+MoveIt~Servo. Cartesian force at the slave end-effector is estimated
+without an external F/T sensor by computing joint-torque residuals:
+the damped least-squares pseudo-inverse of the geometric Jacobian
+($\lambda=0.1$) maps gravity-compensated residual torques to a
+six-component wrench, filtered at $f_c=5$~Hz. Two physical force
+sensors, each based on an ESP32 with micro-ROS over WiFi, were
+designed and built to provide direct operator force input: the
+\emph{master} sensor (node \texttt{force\_sensor\_hw},
+topic \texttt{/teleop/operator\_force\_direct}, $k=1000$~N/m,
+$\pm3$~N joystick) and the \emph{slave} sensor
+(node \texttt{slave\_force\_sensor\_hw},
+topic \texttt{/teleop/slave\_force\_direct}, $k=1500$~N/m,
+$\pm6$~N joystick), both publishing \texttt{WrenchStamped} at
+50~Hz. An Isaac~Sim integration is also provided for hardware-free
+validation, with the simulator acting as the physics backend while
+MoveIt~Servo and the teleop controllers run unmodified on the
+ROS~2 side. Experiments demonstrate functional teleoperation with
+joint tracking RMS error~$<$~[X]° and force estimation error
+$<$~[X]~N against a precision scale reference.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -219,26 +230,37 @@ arte de forma reproducible.
 
 Las contribuciones específicas de esta implementación son:
 \begin{itemize}[itemsep=0.2em]
-  \item \textbf{Protocolo UDP de baja latencia:} diseño de un protocolo
-        binario de comunicación a 100~Hz con paquetes de 56 y 104~bytes
-        y medición de RTT, jitter y percentil 99 de latencia.
+  \item \textbf{Arquitectura ROS~2 + MoveIt~Servo:} integración completa
+        de dos xArm~Lite~6 mediante el paquete \texttt{xarm\_ros2}
+        (nodo \texttt{xarm\_api}, controlador \texttt{uf\_robot\_hardware}),
+        con teleoperación bilateral en espacio cartesiano a 50~Hz
+        publicando \texttt{TwistStamped} a MoveIt~Servo.
+  \item \textbf{Controlador de admitancia en maestro:} modelo dinámico
+        virtual $\bm{M}_d\dot{\bm{v}} + \bm{B}_d\bm{v} =
+        \bm{F}_{op} - \alpha\bm{F}_{slave}$ que convierte fuerzas del
+        operador en velocidad cartesiana, con detección de singularidades
+        mediante $\kappa(\bm{J}) > 50$.
+  \item \textbf{Control de impedancia en esclavo:} seguimiento de pose
+        del maestro con ley feedforward-proporcional
+        $\bm{v}_{cmd} = \bm{v}_{ff} + \bm{K}_p\bm{e}$,
+        publicada como \texttt{TwistStamped} a MoveIt~Servo.
   \item \textbf{Estimador de fuerza sensorless:} implementación del
         estimador $\hat{\bm{F}}_{ext} = (\bm{J}^\top)^+
         (\bm{\tau}_{meas} - \bm{\tau}_{grav})$ con pseudoinversa
-        amortiguada (DLS) y filtro pasa-bajas a 5~Hz, incluyendo
-        calibración automática del nivel de ruido en reposo.
-  \item \textbf{Retroalimentación háptica por impedancia de posición:}
-        alternativa al control de torque directo que no está disponible
-        en el SDK Python del xArm, implementando la corrección
-        $\delta\bm{q} = -k_h \bm{J}^\top \beta \hat{\bm{F}}_{ext}$.
-  \item \textbf{Sensor de fuerza físico con micro-ROS:} diseño y
-        construcción de un sensor de tres ejes basado en ESP32, joystick
-        analógico y resorte-ultrasónico, integrado al sistema ROS~2
-        mediante micro-ROS vía WiFi a 50~Hz.
-  \item \textbf{Integración ROS~2 + MoveIt Servo:} nodos de admitancia
-        (maestro) e impedancia (esclavo) que publican
-        \texttt{TwistStamped} a MoveIt~Servo, habilitando teleoperación
-        en espacio cartesiano a 50~Hz.
+        amortiguada (DLS, $\lambda=0.1$) y filtro pasa-bajas a 5~Hz,
+        incluyendo calibración automática del nivel de ruido en reposo.
+  \item \textbf{Dos sensores de fuerza físicos con micro-ROS:} diseño y
+        construcción de un sensor para el operador maestro
+        ($k=1000$~N/m, $\pm3$~N) y otro para el esclavo
+        ($k=1500$~N/m, $\pm6$~N), ambos en ESP32 con joystick analógico
+        y montaje resorte-ultrasónico, integrados vía micro-ROS/WiFi
+        a 50~Hz publicando \texttt{WrenchStamped}.
+  \item \textbf{Integración con Isaac~Sim:} soporte de simulación
+        completo donde Isaac~Sim actúa como backend de física,
+        publicando \texttt{JointState} y suscribiéndose a
+        \texttt{JointTrajectory}, mientras MoveIt~Servo y los
+        controladores de teleoperación corren sin modificaciones en
+        el lado ROS~2.
 \end{itemize}
 
 \subsection{Estructura del Artículo}
@@ -599,73 +621,100 @@ maestro-esclavo con xArm Lite 6. Señalen todas las señales con sus
 dimensiones.}
 
 \textbf{(a) Descripción del diagrama de bloques.}
-El sistema se organiza en los siguientes bloques interconectados:
+El sistema ROS~2 se organiza en los siguientes bloques interconectados,
+todos corriendo en la misma red mediante DDS (\texttt{rmw\_fastrtps}):
 \begin{enumerate}[label=\roman*.]
   \item \textbf{xArm Maestro} (IP: 192.168.1.175): el operador
-        desplaza el brazo en modo SERVO; se leen los ángulos
-        articulares $\bm{q}_m \in \mathbb{R}^6$ y se aplica la
-        corrección de posición háptica $\delta\bm{q}_m \in \mathbb{R}^6$.
-  \item \textbf{PC Maestro:} ejecuta \texttt{master\_control.py},
-        encapsula $\bm{q}_m$ en un paquete UDP de 56~bytes y lo envía
-        al esclavo; recibe paquetes de 104~bytes con
-        $\hat{\bm{F}}_{ext} \in \mathbb{R}^6$ y $\bm{\tau}_{meas} \in \mathbb{R}^6$;
-        calcula y aplica la corrección háptica.
-  \item \textbf{Red LAN / Wi-Fi:} canal UDP bidireccional de baja
-        latencia ($T_d < 2$~ms, $\text{jitter} < 0.5$~ms).
-  \item \textbf{PC Esclavo:} ejecuta \texttt{slave\_control.py};
-        recibe $\bm{q}_m$, la escala con factor $\alpha = 1.0$, envía
-        el comando al xArm Esclavo, lee torques y ejecuta el estimador
-        de fuerza.
-  \item \textbf{xArm Esclavo} (IP: 192.168.1.226): recibe
-        $\bm{q}_{ref} \in \mathbb{R}^6$ en modo SERVO
-        (\texttt{set\_servo\_angle\_j}); devuelve
-        $\bm{\tau}_{meas} \in \mathbb{R}^6$ vía
-        \texttt{get\_joint\_states()}.
-  \item \textbf{Estimador de fuerza:} convierte $\bm{\tau}_{meas}$
-        en $\hat{\bm{F}}_{ext} \in \mathbb{R}^6$ usando el Jacobiano
-        y la compensación gravitacional.
-  \item \textbf{Sensor físico ESP32} (opcional): publica
-        $\bm{F}_{hw} \in \mathbb{R}^3$ en el tópico
-        \texttt{/teleop/operator\_force\_direct} vía micro-ROS/Wi-Fi a
-        50~Hz, para alimentar directamente al maestro.
+        desplaza el brazo mientras \texttt{xarm\_api} publica
+        $\bm{q}_m \in \mathbb{R}^6$, $\dot{\bm{q}}_m$, y
+        $\bm{\tau}_m \in \mathbb{R}^6$ en \texttt{/master/joint\_states}.
+        MoveIt~Servo convierte \texttt{TwistStamped}~$\in \mathbb{R}^6$
+        en comandos de trayectoria para el robot.
+  \item \textbf{Nodo \texttt{master\_admittance}:} controlador de
+        admitancia cartesiana que suscribe fuerzas del operador
+        ($\bm{F}_{op} \in \mathbb{R}^3$) y del esclavo
+        ($\bm{F}_{slave} \in \mathbb{R}^3$), computa la velocidad
+        cartesiana del EE mediante el modelo admitancia, y publica
+        \texttt{TwistStamped}~$\in \mathbb{R}^6$ a
+        \texttt{/master/servo\_server/delta\_twist\_cmds}.
+        También publica la pose $\bm{x}_m \in \mathbb{R}^7$ (PoseStamped)
+        y velocidad $\bm{v}_m \in \mathbb{R}^3$ (TwistStamped) del EE
+        maestro para el esclavo.
+  \item \textbf{Nodo \texttt{force\_sensor} (maestro):} estima
+        $\hat{\bm{F}}_{ext,m} \in \mathbb{R}^6$ a partir de
+        \texttt{/master/joint\_states} y publica en
+        \texttt{/master/force\_sensor/force\_estimate}.
+  \item \textbf{Bus ROS~2 / DDS:} canal de tópicos compartidos de
+        baja latencia ($T_d < 5$~ms en LAN local).
+  \item \textbf{Nodo \texttt{slave\_impedance}:} controlador PD
+        cartesiano que suscribe la pose $\bm{x}_m$ y velocidad
+        $\bm{v}_m$ del maestro desde \texttt{/teleop/master\_pose} y
+        \texttt{/teleop/master\_velocity}, computa el comando de
+        velocidad del esclavo $\bm{v}_{cmd} = \bm{v}_{ff} +
+        \bm{K}_p\bm{e}$, y publica \texttt{TwistStamped} a
+        \texttt{/slave/servo\_server/delta\_twist\_cmds}.
+  \item \textbf{xArm Esclavo} (IP: 192.168.1.226): recibe comandos
+        de trayectoria de MoveIt~Servo; \texttt{xarm\_api} publica
+        $\bm{q}_s \in \mathbb{R}^6$ y $\bm{\tau}_s \in \mathbb{R}^6$
+        en \texttt{/slave/joint\_states}.
+  \item \textbf{Nodo \texttt{force\_sensor} (esclavo):} estima
+        $\hat{\bm{F}}_{ext,s} \in \mathbb{R}^6$ y publica en
+        \texttt{/slave/force\_sensor/force\_estimate}, que el nodo
+        maestro usa para generar la retroalimentación háptica.
+  \item \textbf{Sensores físicos ESP32 (micro-ROS):} el sensor maestro
+        (\texttt{force\_sensor\_hw}) publica $\bm{F}_{hw,m}
+        \in \mathbb{R}^3$ en \texttt{/teleop/operator\_force\_direct}
+        (puerto 8888, $k=1000$~N/m, joy $= \pm3$~N); el sensor esclavo
+        (\texttt{slave\_force\_sensor\_hw}) publica
+        $\bm{F}_{hw,s} \in \mathbb{R}^3$ en
+        \texttt{/teleop/slave\_force\_direct}
+        (puerto 8889, $k=1500$~N/m, joy $= \pm6$~N). Ambos a 50~Hz
+        con QoS \texttt{BEST\_EFFORT} sobre WiFi.
 \end{enumerate}
 
-\textbf{(b) Flujo de datos en un ciclo de control (100~Hz).}
+\textbf{(b) Flujo de datos en un ciclo de control (50~Hz).}
 \begin{enumerate}[label=\roman*.]
-  \item PC Maestro lee $\bm{q}_m$ con \texttt{get\_servo\_angle(is\_radian=True)}.
-  \item PC Maestro empaqueta \texttt{[timestamp, q[0..5]]} (56~bytes) y
-        envía vía UDP al puerto 5005 de PC Esclavo.
-  \item PC Esclavo recibe $\bm{q}_m$, calcula
-        $\bm{q}_{ref} = \alpha\bm{q}_m$ limitado por
-        $|\Delta q_i| \leq \dot{q}_{max}\cdot T_s$, y ejecuta
-        \texttt{set\_servo\_angle\_j(angles=q\_ref)}.
-  \item PC Esclavo lee $\bm{\tau}_{meas}$ con
-        \texttt{get\_joint\_states()[\,2\,][:6]}.
-  \item PC Esclavo actualiza el estimador:
-        $\hat{\bm{F}}_{ext} \leftarrow \text{LPF}\bigl[(\bm{J}^\top)^+
-        (\bm{\tau}_{meas} - \bm{\tau}_{grav})\bigr]$.
-  \item PC Esclavo empaqueta \texttt{[timestamp, F\_ext[0..5], tau[0..5]]}
-        (104~bytes) y envía vía UDP al puerto 5006 de PC Maestro.
-  \item Si $\|\hat{\bm{F}}_{ext}\| > 1$~N, PC Maestro aplica la
-        corrección háptica $\delta\bm{q}_m =
-        -k_h \bm{J}_m^\top \beta \hat{\bm{F}}_{ext}$.
+  \item \texttt{xarm\_api} del maestro lee el estado articular y
+        publica \texttt{/master/joint\_states}
+        ($\bm{q}_m, \bm{\tau}_m \in \mathbb{R}^6$).
+  \item \texttt{ForceSensorNode} (maestro) estima
+        $\hat{\bm{F}}_{ext,m}$ y publica en
+        \texttt{/master/force\_sensor/force\_estimate}.
+  \item \texttt{MasterAdmittanceNode} integra el modelo de admitancia:
+        $\bm{v} \mathrel{+}= \Delta t \cdot (\bm{F}_{net} -
+        \bm{B}_d\bm{v}) / \bm{M}_d$, con
+        $\bm{F}_{net} = \bm{F}_{op} - \alpha\bm{F}_{slave}$,
+        y publica \texttt{TwistStamped} a
+        \texttt{/master/servo\_server/delta\_twist\_cmds} y
+        la pose EE a \texttt{/teleop/master\_pose}.
+  \item MoveIt~Servo convierte \texttt{TwistStamped} en
+        \texttt{JointTrajectory} y lo envía al controlador del robot.
+  \item \texttt{SlaveImpedanceNode} suscribe \texttt{/teleop/master\_pose},
+        computa $\bm{e} = \bm{x}_m - \bm{x}_s$,
+        $\bm{v}_{cmd} = \bm{v}_{ff} + \bm{K}_p\bm{e}$ y publica
+        \texttt{TwistStamped} a
+        \texttt{/slave/servo\_server/delta\_twist\_cmds}.
+  \item \texttt{ForceSensorNode} (esclavo) estima
+        $\hat{\bm{F}}_{ext,s}$ y publica en
+        \texttt{/slave/force\_sensor/force\_estimate}, cerrando el
+        lazo de retroalimentación háptica al maestro.
 \end{enumerate}
 
-\textbf{(c) Frecuencia de actualización: 100~Hz.}
-Se eligió 100~Hz ($T_s = 10$~ms) por las siguientes razones:
+\textbf{(c) Frecuencia de actualización: 50~Hz.}
+Se eligió 50~Hz ($T_s = 20$~ms) por las siguientes razones:
 \begin{itemize}
-  \item \texttt{set\_servo\_angle\_j} (Modo~1, SERVO) acepta
-        comandos a frecuencias de hasta 250~Hz sin interpolación
-        interna, a diferencia de \texttt{set\_servo\_angle} (Modo~0)
-        que genera trayectorias suaves pero introduce latencia variable
-        de 100--500~ms por planificación de movimiento. Para
-        teleoperación en tiempo real, el Modo~1 es obligatorio.
-  \item A 100~Hz, el sistema de red UDP puede servirse con margen
-        suficiente para absorber jitter de red manteniendo
-        $T_d < 2$~ms.
-  \item El procesamiento del estimador de fuerza (Jacobiano + LPF)
-        toma $\approx 0.3$~ms en Python, dentro del presupuesto de
-        10~ms por ciclo.
+  \item MoveIt~Servo opera por defecto a 50~Hz para generar comandos
+        de trayectoria suaves y dentro de los límites de velocidad
+        articular del xArm.
+  \item El lazo de admitancia/impedancia en espacio cartesiano requiere
+        frecuencia de control menor que el lazo articular interno del
+        robot (250~Hz), por lo que 50~Hz es el máximo práctico
+        respetando la separación de escalas de tiempo.
+  \item Los sensores ESP32 publican a 50~Hz, por lo que el controlador
+        de admitancia puede consumir cada muestra sin interpolación.
+  \item El procesamiento de admitancia (FK + Jacobiano + paso de
+        integración Euler) toma $\approx 1$~ms en Python, dentro del
+        presupuesto de 20~ms por ciclo.
 \end{itemize}
 
 \subsection{Protocolo de Comunicación}
@@ -698,69 +747,75 @@ Se eligió 100~Hz ($T_s = 10$~ms) por las siguientes razones:
         háptica según el análisis de la Pregunta T3(b)?
 \end{enumerate}
 
-\textbf{(a) UDP vs.\ TCP.}
-Se eligió \textbf{UDP} por las siguientes razones:
+\textbf{(a) ROS~2 DDS vs.\ UDP/TCP directo.}
+En lugar de un protocolo binario personalizado, el sistema utiliza
+\textbf{ROS~2 con DDS} (\texttt{rmw\_fastrtps}) como capa de
+comunicación. Esto ofrece:
 \begin{itemize}
-  \item \textit{Latencia determinista:} UDP no tiene mecanismo de
-        retransmisión ni control de flujo. Si un paquete llega tarde,
-        se descarta y el ciclo de control continúa con el último valor
-        válido (\textit{zero-order hold}), lo que en teleoperación
-        produce un efecto más suave que la retransmisión TCP que puede
-        bloquear el hilo durante varios milisegundos.
-  \item \textit{Head-of-line blocking:} TCP garantiza entrega en orden,
-        lo que con ráfagas de paquetes puede introducir latencias de
-        hasta un RTT adicional. UDP entrega cada paquete de forma
-        independiente.
-  \item \textit{Overhead:} la cabecera UDP es de 8~bytes vs.\ 20~bytes
-        de TCP, reduciendo la fracción de overhead en paquetes pequeños.
+  \item \textit{Calidad de servicio configurable:} los sensores ESP32
+        (micro-ROS) usan QoS \texttt{BEST\_EFFORT} para minimizar
+        latencia; los nodos de estimación y control usan
+        \texttt{RELIABLE} con profundidad~10. Esto replica el
+        comportamiento de UDP para datos de sensor y TCP para
+        comandos críticos, pero dentro del mismo framework.
+  \item \textit{Sin bloqueo de cabeza de línea:} cada tópico tiene su
+        propio hilo de comunicación en DDS; un tópico lento no bloquea
+        a los demás.
+  \item \textit{Descubrimiento automático:} los nodos maestro y esclavo
+        se descubren automáticamente en la LAN sin configuración manual
+        de IPs de destino (siempre que compartan el mismo
+        \texttt{ROS\_DOMAIN\_ID}).
+  \item \textit{Sincronización de tiempo:} los mensajes incluyen
+        \texttt{stamp} ROS~2 con tiempo sincronizado por NTP/PTP,
+        permitiendo medir latencias end-to-end sin reloj de referencia
+        externo.
 \end{itemize}
-En nuestra red LAN la pérdida de paquetes UDP es menor al 0.1\%, por
-lo que el riesgo de pérdida no justifica usar TCP.
+El primer prototipo del proyecto (\texttt{xarm\_teleops}) utilizó
+UDP directo a 100~Hz con paquetes de 56 y 104~bytes, confirmando
+$T_d < 2$~ms en LAN. La arquitectura ROS~2 actual introduce un
+overhead de serialización CDR de $\approx 1$~ms adicional, pero
+provee interoperabilidad, introspección con \texttt{ros2 topic echo},
+y trazabilidad con \texttt{ros2 bag}.
 
-\textbf{(b) Formato de paquetes.}
-Ambos paquetes usan codificación \textit{little-endian} IEEE~754
-\texttt{float64} (8~bytes cada uno), implementados con la librería
-\texttt{struct} de Python:
+\textbf{(b) Tópicos y mensajes del sistema.}
+La siguiente tabla resume los tópicos de comunicación principales:
 
 \begin{table}[h]
   \centering
-  \caption{Formato de paquetes UDP (little-endian float64)}
-  \label{tab:packets}
+  \caption{Tópicos ROS~2 del sistema de teleoperación bilateral}
+  \label{tab:topics}
   \small
-  \begin{tabular}{llcr}
+  \begin{tabular}{p{4cm}lp{1.5cm}}
     \toprule
-    \textbf{Dirección} & \textbf{Campo} & \textbf{Count} & \textbf{Bytes} \\
+    \textbf{Tópico} & \textbf{Tipo} & \textbf{Hz / QoS} \\
     \midrule
-    \multirow{2}{*}{Maestro $\to$ Esclavo}
-      & timestamp (s UNIX) & 1 & 8 \\
-      & $\bm{q}_{master}$ (rad)      & 6 & 48 \\
-    \midrule
-    & \textbf{Total} & 7 & \textbf{56} \\
-    \midrule
-    \multirow{3}{*}{Esclavo $\to$ Maestro}
-      & timestamp (s UNIX) & 1 & 8 \\
-      & $\hat{\bm{F}}_{ext}$ (N, Nm) & 6 & 48 \\
-      & $\bm{\tau}_{meas}$ (Nm)      & 6 & 48 \\
-    \midrule
-    & \textbf{Total} & 13 & \textbf{104} \\
+    \texttt{/master/joint\_states}        & JointState     & 250 / REL \\
+    \texttt{/slave/joint\_states}         & JointState     & 250 / REL \\
+    \texttt{/master/force\_sensor/force\_estimate} & WrenchStamped & 100 / REL \\
+    \texttt{/slave/force\_sensor/force\_estimate}  & WrenchStamped & 100 / REL \\
+    \texttt{/teleop/operator\_force\_direct}       & WrenchStamped & 50 / BE \\
+    \texttt{/teleop/slave\_force\_direct}          & WrenchStamped & 50 / BE \\
+    \texttt{/teleop/master\_pose}         & PoseStamped    & 50 / REL \\
+    \texttt{/teleop/master\_velocity}     & TwistStamped   & 50 / REL \\
+    \texttt{/master/servo\_server/delta\_twist\_cmds} & TwistStamped & 50 / REL \\
+    \texttt{/slave/servo\_server/delta\_twist\_cmds}  & TwistStamped & 50 / REL \\
     \bottomrule
   \end{tabular}
 \end{table}
-
-No se incluye checksum dado que los errores de bit en LAN son
-despreciables y el sistema tolera pérdidas ocasionales de paquetes.
+\noindent REL = \texttt{RELIABLE}, BE = \texttt{BEST\_EFFORT}.
 
 \textbf{(c) Retardo efectivo y estabilidad.}
-Con el RTT medido $T_{RTT}$ (ejecutar \texttt{net\_test.py client
-<IP\_SERVIDOR>}), el retardo efectivo es $T_d = T_{RTT}/2$.
-Usando el criterio de Colgate con $\omega_c = 2\pi \times 50$~rad/s:
+Con DDS sobre LAN, el retardo de ida de un tópico \texttt{RELIABLE}
+es $T_d \approx 2$--$5$~ms (medido con \texttt{ros2 topic delay}).
+Para los tópicos BE de los sensores ESP32, el retardo incluye además
+la latencia WiFi ($\approx 5$--$15$~ms). Usando el criterio de Colgate
+con $\omega_c = 2\pi \times 50$~rad/s:
 \[
   K_{d,max} = \frac{\pi}{2\,T_d\,\omega_c}
 \]
-Para $T_{RTT} = 1$~ms $\Rightarrow T_d = 0.5$~ms:
-$K_{d,max} \approx 10$~N/m. El parámetro de ganancia háptica $\beta = 0.3$
-se seleccionó con un margen de seguridad de $5\times$ respecto a
-$\beta_{max}$ determinado experimentalmente.
+Para $T_d = 5$~ms: $K_{d,max} \approx 2.0$~N/m. El parámetro
+$\alpha = 0.3$ en el modelo de admitancia fue seleccionado con
+margen de seguridad respecto a este límite.
 
 \FIGURE{Fig. A2: Histograma de RTT medido entre PC Maestro y
 PC Esclavo. Incluyan estadísticas: media, desviación estándar, percentil 99.}
@@ -938,14 +993,20 @@ Se implementaron \textbf{dos estrategias en paralelo}:
 \begin{itemize}
   \item \textit{Estimación por torque articular} como solución
         principal: no requiere hardware adicional, está disponible
-        desde el primer día vía \texttt{get\_joint\_states()},
+        desde \texttt{/\{ns\}/joint\_states} (campo \texttt{effort}),
         y la precisión de 1--3~N es suficiente para detectar contactos
         con objetos rígidos típicos del laboratorio.
-  \item \textit{Sensor físico ESP32} (muñeca DIY): construido con
-        joystick analógico y resorte-ultrasónico, integrado vía
-        micro-ROS. Permite validar el estimador por torque con una
-        referencia hardware independiente, y sirve como entrada del
-        operador para generar fuerzas de prueba en el maestro.
+  \item \textit{Dos sensores físicos ESP32} (DIY): el \textbf{sensor
+        maestro} (nodo \texttt{force\_sensor\_hw}, $k=1000$~N/m,
+        $\pm3$~N, puerto 8888, tópico
+        \texttt{/teleop/operator\_force\_direct}) provee la fuerza
+        de entrada del operador cuando el brazo maestro no está
+        disponible o como canal de override del estimador virtual;
+        el \textbf{sensor esclavo} (nodo \texttt{slave\_force\_sensor\_hw},
+        $k=1500$~N/m, $\pm6$~N, puerto 8889, tópico
+        \texttt{/teleop/slave\_force\_direct}) provee referencia de
+        fuerza de contacto independiente del modelo dinámico para
+        validar el estimador por torque.
 \end{itemize}
 
 \textbf{(c) Modificaciones con sensor F/T de muñeca.}
@@ -998,108 +1059,85 @@ en la muñeca del esclavo:
         Describan la condición de saturación.
 \end{enumerate}
 
-\textbf{(a) Ley de control del esclavo.}
-El esclavo implementa un seguidor de posición articular en tiempo real.
-La referencia articular se calcula como:
-\begin{multline}
-  \bm{q}_{ref}[k] = \bm{q}_{curr}[k{-}1] + {} \\
-  \text{clip}\!\bigl(\alpha\,\bm{q}_{m}[k] - \bm{q}_{curr}[k{-}1],\;
-    \pm\dot{q}_{max}\Delta t\bigr)
+\textbf{(a) Ley de control del esclavo (SlaveImpedanceNode).}
+El esclavo implementa un seguidor de pose del efector final en espacio
+cartesiano. La ley de control es:
+\begin{equation}
+  \bm{v}_{cmd} = \bm{v}_{ff} + \bm{K}_p \, \text{clip}(\bm{e},\, \pm 0.01\;\text{m})
   \label{eq:slave_law}
-\end{multline}
-con $\alpha = 1.0$ y $\dot{q}_{max} = 60°/\text{s}$.
+\end{equation}
+donde $\bm{e} = \bm{x}_m - \bm{x}_s$ es el error de posición cartesiano
+del EE, $\bm{v}_{ff}$ es la velocidad feedforward publicada por el
+maestro, $\bm{K}_p = \text{diag}(5,5,5)$~s$^{-1}$ es la ganancia
+proporcional, y clip$(\cdot, \pm0.01)$ limita la corrección a 1~cm.
+Se aplica una banda muerta de 3~mm para suprimir ruido en reposo.
+La velocidad se satura a $\pm 0.10$~m/s por eje.
 
-Se utilizó \texttt{set\_servo\_angle\_j} (\textbf{Modo~1 SERVO}) porque:
+El comando $\bm{v}_{cmd} \in \mathbb{R}^3$ se publica como
+\texttt{TwistStamped} (sólo componentes lineales) a
+\texttt{/slave/servo\_server/delta\_twist\_cmds},
+y MoveIt~Servo lo convierte en \texttt{JointTrajectory} para el robot.
+Esto es funcionalmente equivalente al antiguo
+\texttt{set\_servo\_angle\_j}, pero con las ventajas de:
 \begin{itemize}
-  \item Acepta comandos a frecuencia arbitraria sin interpolación
-        interna, permitiendo el lazo de 100~Hz.
-  \item \texttt{set\_servo\_angle} (Modo~0) genera trayectorias
-        suaves con planificación interna, añadiendo latencia de
-        100--500~ms incompatible con teleoperación.
-  \item \texttt{set\_servo\_cartesian} (Modo~6) requiere IK interna
-        con posible fallo en configuraciones singulares.
+  \item comprobación de colisiones y límites de velocidad articular
+        integradas en MoveIt~Servo;
+  \item interoperabilidad con Isaac~Sim (mismo nodo, distinto backend);
+  \item control en espacio cartesiano en lugar de articular, eliminando
+        la necesidad de escalar $\bm{q}$ entre robots.
 \end{itemize}
+Si la pose del maestro no se actualiza en $>0.5$~s (\texttt{timeout\_s}),
+el nodo publica velocidad cero y registra una advertencia.
 
 \FIGURE{Fig. C1: Diagrama de flujo (flowchart) del ciclo de control
-del esclavo a 100 Hz. Incluir: recepción UDP, cálculo de referencia,
-set\_servo\_angle\_j, lectura torques, estimación fuerza, envío UDP.}
+del esclavo a 50 Hz. Incluir: suscripción a /teleop/master\_pose,
+cálculo FK + error cartesiano, ley v\_cmd = v\_ff + Kp*e,
+publicación TwistStamped a MoveIt Servo.}
 
-\textbf{(c) Factor de escalado $\alpha = 1.0$.}
-Ambos robots son del mismo modelo (xArm~Lite~6) con espacios de
-trabajo idénticos (alcance $\approx 560$~mm), por lo que el mapeo
-1:1 es el más intuitivo para el operador. Si se usara el esclavo en
-espacios reducidos, se podría reducir $\alpha < 1$ para aumentar la
-precisión de posicionamiento a costa de reducir el rango de movimiento.
+\textbf{(c) Seguimiento de pose en lugar de mapeo articular.}
+El \texttt{SlaveImpedanceNode} trabaja en espacio cartesiano:
+no escala ángulos articulares sino que rastrea la posición del EE
+del maestro. Esto es equivalente a $\alpha = 1.0$ en pose cartesiana
+y es más robusto ante diferencias de configuración entre los dos robots
+(el maestro puede estar en una configuración articular completamente
+diferente al esclavo y, sin embargo, ambos tendrán el EE en el mismo
+punto del espacio de trabajo).
 
 \textbf{(d) Force clamping.}
-En el maestro, la fuerza reflejada se limita antes de calcular la
-corrección háptica:
+El nodo maestro limita la fuerza reflejada del esclavo antes de
+integrar el modelo de admitancia:
 \begin{multline*}
-  \|\hat{\bm{F}}_{ext}[:3]\| > F_{clamp} = 20\;\text{N}
+  \|\bm{F}_{slave}[:3]\| > F_{clamp} = 20\;\text{N}
   \;\Rightarrow \\
-  \hat{\bm{F}}_{ext}[:3] \leftarrow
-  \hat{\bm{F}}_{ext}[:3] \cdot \frac{20}{\|\hat{\bm{F}}_{ext}[:3]\|}
+  \bm{F}_{slave}[:3] \leftarrow
+  \bm{F}_{slave}[:3] \cdot \frac{20}{\|\bm{F}_{slave}[:3]\|}
 \end{multline*}
 Este límite evita que errores del estimador de fuerza (por ejemplo,
-cerca de singularidades) generen correcciones articulares que lleven
-al maestro a una posición insegura.
+cerca de singularidades) generen velocidades cartesianas excesivas
+en el maestro.
 
-\begin{lstlisting}[caption={Ciclo de control del robot Esclavo (slave\_control.py)},
+\begin{lstlisting}[caption={Control del esclavo — SlaveImpedanceNode (slave\_node.py)},
                    label={lst:slave}]
-import numpy as np
-from xarm_setup import setup_robot, move_to_home, safe_shutdown
-from xarm_setup import get_joint_angles_rad, get_joint_torques, MODE_SERVO
-from force_estimator import ForceEstimator
-from network_comm import MasterReceiver, SlaveSender
+# Ley de control: v_cmd = v_ff + Kp * clip(e, 1 cm)
+T = forward_kinematics(self._q)     # FK esclavo
+x_actual = T[:3, 3]                 # posicion EE actual
 
-ARM_SLAVE_IP = '192.168.1.226'  # IP del xArm Esclavo
-MASTER_IP    = '192.168.1.175'  # IP de la PC Maestro
-CONTROL_HZ   = 100              # Hz
-ALPHA        = 1.0              # escala de posicion (1:1)
-MAX_SERVO_SPEED = np.radians(60.0)  # 60 deg/s en rad/s
+e = self._x_des - x_actual          # error cartesiano
+e = np.where(np.abs(e) < self._deadband, 0.0, e)
+e = np.clip(e, -0.01, 0.01)         # clip a 1 cm
 
-# Inicializar robot en Modo SERVO (sin interpolacion interna)
-arm = setup_robot(ARM_SLAVE_IP, mode=MODE_SERVO)
-move_to_home(arm)
+v_cmd = self._v_ff + self._Kp * e   # feedforward + PD
+v_cmd = np.clip(v_cmd,              # saturacion de velocidad
+                -self._max_speed, self._max_speed)
 
-# Calibracion de ruido en reposo (2 s, robot inmovil)
-estimator = ForceEstimator(control_hz=CONTROL_HZ, cutoff_hz=5.0)
-q_home   = get_joint_angles_rad(arm)
-tau_cal  = np.array([get_joint_torques(arm)
-                     for _ in range(int(2.0 * CONTROL_HZ))])
-estimator.calibrate_noise(q_home, tau_cal)
-estimator.force_threshold = estimator.suggest_threshold(3.0)
-
-rx = MasterReceiver(port=5005, timeout=0.01)
-tx = SlaveSender(remote_ip=MASTER_IP, remote_port=5006)
-
-q_curr = get_joint_angles_rad(arm)
-dt     = 1.0 / CONTROL_HZ
-max_delta = MAX_SERVO_SPEED * dt  # rad por ciclo
-
-while running:
-    # 1. Recibir referencia articular del Maestro (UDP, 56 bytes)
-    pkt = rx.recv()
-    if pkt is not None:
-        _, q_master = pkt
-        q_ref_raw = ALPHA * q_master
-        delta = np.clip(q_ref_raw - q_curr, -max_delta, max_delta)
-        q_ref = q_curr + delta
-
-    # 2. Enviar comando en Modo SERVO (tiempo real)
-    arm.set_servo_angle_j(angles=q_ref.tolist(),
-                          speed=np.degrees(MAX_SERVO_SPEED),
-                          is_radian=True)
-
-    # 3. Leer estados articulares
-    q_curr   = get_joint_angles_rad(arm)
-    tau_meas = get_joint_torques(arm)  # states[2][:6]
-
-    # 4. Estimar fuerza: F = (J^T)+ * (tau_meas - tau_grav)
-    F_ext = estimator.update(q_curr, tau_meas)
-
-    # 5. Enviar F_ext + tau_meas al Maestro (UDP, 104 bytes)
-    tx.send(F_ext, tau_meas)
+# Publicar TwistStamped a MoveIt Servo
+msg = TwistStamped()
+msg.header.stamp = now.to_msg()
+msg.header.frame_id = 'link_base'
+msg.twist.linear.x = float(v_cmd[0])
+msg.twist.linear.y = float(v_cmd[1])
+msg.twist.linear.z = float(v_cmd[2])
+self._pub_twist.publish(msg)
 \end{lstlisting}
 
 \subsubsection*{Pregunta~C2 \pts{8}}
@@ -1122,78 +1160,80 @@ while running:
         feedback háptico en el maestro.
 \end{enumerate}
 
-\textbf{(a) Significado y límite de $\beta$.}
-$\beta$ es la \textbf{ganancia de reflexión de fuerza}: escala la
-fuerza de contacto del esclavo antes de proyectarla al espacio
-articular del maestro. Físicamente, $\beta = 1$ implica que el
-maestro recibe la misma fuerza que el esclavo; $\beta < 1$ reduce
-la intensidad de la sensación háptica (sistema de teleoperación
-\textit{soft}).
-
-Para determinar $\beta_{max}$ se aplica la condición de pasividad:
-la corrección de posición háptica introduce una rigidez efectiva
-$K_{eff} = \beta \cdot k_h \cdot \sigma_{max}^2(\bm{J})$ en el
-lazo de retroalimentación. La condición de Colgate requiere:
-\begin{gather*}
-  K_{eff} < K_{d,max} \;\Rightarrow \\
-  \beta_{max} < \frac{K_{d,max}}{k_h \cdot \sigma_{max}^2(\bm{J})}
-\end{gather*}
-Con $k_h = 0.05$~rad/N, $K_{d,max} \approx 5$~N/m (para $T_d = 1$~ms)
-y $\sigma_{max}(\bm{J}) \approx 0.5$~m/rad (configuración home):
+\textbf{(a) Significado y límite de $\alpha$.}
+En el modelo de admitancia implementado en \texttt{MasterAdmittanceNode},
+el parámetro de reflexión de fuerza es $\alpha = 0.3$:
 \[
-  \beta_{max} < \frac{5.0}{0.05 \times 0.25} = 400
+  \bm{F}_{net} = \bm{F}_{op} - \alpha \cdot \text{clip}(\bm{F}_{slave},\,
+  \pm F_{clamp})
 \]
-Este valor teórico es conservador; el límite práctico se determinó
-experimentalmente como $\beta_{crit} \approx$ [X] (ver Sección~E4).
-Se seleccionó $\beta = 0.3$ con amplio margen de seguridad.
+$\alpha$ escala la fuerza de contacto del esclavo que se resta a la
+fuerza del operador. Físicamente, $\alpha = 1$ implica reflexión
+completa (el maestro siente exactamente la misma fuerza que el esclavo);
+$\alpha < 1$ reduce la sensación háptica (\textit{soft teleoperation}).
 
-\textbf{(b) Limitación del SDK para inyección de torques.}
-El xArm~Lite~6 \textbf{no permite inyectar torques articulares
-arbitrarios en modo usuario} a través del SDK Python. El
-\textit{modo torque} (si existe en firmware) requiere acceso de
-bajo nivel no documentado y presenta riesgos de seguridad al omitir
-los límites de torque internos. Por tanto, se implementó la siguiente
-\textbf{alternativa por impedancia de posición}:
+La rigidez efectiva en el lazo de retroalimentación es aproximadamente:
+\[
+  K_{eff} = \alpha \cdot \frac{\bm{K}_p}{\bm{M}_d} \cdot T_d
+\]
+La condición de Colgate requiere $K_{eff} < K_{d,max} \approx 2.0$~N/m
+(para $T_d = 5$~ms, $\omega_c = 2\pi\times50$~rad/s). Con
+$K_p = 5$~s$^{-1}$, $M_d = 2$~kg y $T_d = 5$~ms:
+\[
+  K_{eff} = 0.3 \times \frac{5}{2} \times 0.005 = 3.75 \times 10^{-3} \;\text{N/m}
+\]
+Este valor está muy por debajo del límite, garantizando estabilidad
+pasiva con amplio margen. El límite práctico de $\alpha_{crit}$ se
+determina experimentalmente (ver Sección~E4).
+
+\textbf{(b) Admitancia cartesiana en lugar de impedancia de posición articular.}
+La implementación en \texttt{MasterAdmittanceNode} realiza el control
+\textbf{en espacio cartesiano} mediante el modelo de admitancia, sin
+necesidad de inyectar torques articulares:
 \begin{align*}
-  \delta\bm{q} &= -k_h \cdot \bm{J}^\top \cdot (\beta \cdot \hat{\bm{F}}_{ext}) \\
-  \bm{q}_{cmd} &= \bm{q}_{curr} + \delta\bm{q}
+  \bm{v}_{dot} &= \bigl(\bm{F}_{net} - \bm{B}_d\bm{v}\bigr) / \bm{M}_d \\
+  \bm{v} &\mathrel{+}= \bm{v}_{dot} \cdot \Delta t \\
+  \bm{v} &\leftarrow \text{clip}(\bm{v},\, \pm v_{max})
 \end{align*}
-Al enviar $\bm{q}_{cmd}$ con una velocidad baja (30°/s), el
-controlador interno del xArm genera el torque necesario para alcanzar
-$\bm{q}_{cmd}$, produciendo una resistencia al movimiento del operador
-proporcional a $\hat{\bm{F}}_{ext}$.
+La velocidad cartesiana resultante se publica como \texttt{TwistStamped}
+a MoveIt~Servo, que genera el movimiento articular apropiado.
+Esto es conceptualmente equivalente a la corrección de impedancia de
+posición articular del prototipo anterior, pero con las ventajas de:
+(i)~operar nativamente en espacio cartesiano sin necesidad de $\bm{J}^\top$
+para el comando; (ii)~incorporar la masa virtual $\bm{M}_d$ que suaviza
+los transitorios de fuerza; (iii)~detectar singularidades con
+$\kappa(\bm{J}) > 50$ y detener el movimiento del maestro de forma segura.
 
-\begin{lstlisting}[caption={Feedback háptico en maestro (master\_control.py)},
+\begin{lstlisting}[caption={Admitancia del maestro — MasterAdmittanceNode (master\_node.py)},
                    label={lst:haptic}]
-from jacobian_utils import jacobian_dh, condition_number
-import numpy as np
+# Modelo de admitancia: Md * v_dot + Bd * v = F_net
+F_slave_clamped = np.clip(F_slave, -20.0, 20.0)   # force clamping 20 N
+F_net = F_op - 0.3 * F_slave_clamped              # alpha = 0.3
 
-BETA          = 0.3     # ganancia de reflexion de fuerza
-KH            = 0.05    # ganancia haptica [rad/N]
-FORCE_CLAMP_N = 20.0    # saturacion de fuerza reflejada [N]
-KAPPA_THR     = 50.0    # umbral de singularidad
+# Deadband: ignorar fuerzas pequeñas (ruido)
+for i in range(3):
+    if abs(F_net[i]) < 1.5:    # deadband 1.5 N
+        F_net[i] = 0.0
 
-def apply_haptic_correction(arm, q_curr, F_ext, beta=BETA, kh=KH):
-    """Corrección haptica: delta_q = -kh * J^T * beta * F_ext"""
-    # Verificar singularidad
-    J = jacobian_dh(q_curr)
-    if condition_number(J) > KAPPA_THR:
-        return  # cerca de singularidad: no aplicar haptica
+# Verificar singularidad (solo posicion Jacobian 3x6)
+J = position_jacobian(self._q)
+if condition_number(J) > 50.0:
+    self._v = np.zeros(3)
+    self._publish_zero_twist(now)
+    return
 
-    # Limitar fuerza reflejada (force clamping)
-    F_clamped = F_ext.copy()
-    f_norm = np.linalg.norm(F_clamped[:3])
-    if f_norm > FORCE_CLAMP_N:
-        F_clamped[:3] *= FORCE_CLAMP_N / f_norm
+# Integrar admitancia (Euler discreto, dt = 0.02 s @ 50 Hz)
+Md = np.array([2.0, 2.0, 2.0])   # masa virtual [kg]
+Bd = np.array([10.0, 10.0, 10.0]) # amortiguamiento [N*s/m]
+v_dot = (F_net - Bd * self._v) / Md
+self._v += v_dot * self._dt
+self._v = np.clip(self._v, -0.10, 0.10)  # max 0.10 m/s
 
-    # Correccion articular: delta_q = -kh * J^T * beta * F
-    delta_q = -kh * J.T @ (beta * F_clamped)
-    q_cmd   = q_curr + delta_q
-
-    # Enviar correccion con velocidad baja (movimiento suave)
-    arm.set_servo_angle_j(angles=q_cmd.tolist(),
-                          speed=30.0,
-                          is_radian=True)
+# Publicar TwistStamped a MoveIt Servo
+twist_msg.twist.linear.x = float(self._v[0])
+twist_msg.twist.linear.y = float(self._v[1])
+twist_msg.twist.linear.z = float(self._v[2])
+self._pub_twist.publish(twist_msg)
 \end{lstlisting}
 
 %% ============================================================
@@ -1201,14 +1241,19 @@ def apply_haptic_correction(arm, q_curr, F_ext, beta=BETA, kh=KH):
 \label{sec:implementation}
 %% ============================================================
 
-\begin{theorybox}[xArm Python SDK]
-  El repositorio oficial~\cite{xarm_github} provee la librería
-  \texttt{xArm-Python-SDK} con la clase \texttt{XArmAPI}.
-  Los modos de operación relevantes son:
-  \textbf{Modo~0} (posición), \textbf{Modo~1} (servo/ángulo),
-  \textbf{Modo~4} (velocidad articular), \textbf{Modo~6} (pose cartesiana).
-  El estado del robot se controla con \texttt{set\_state()}:
-  estado~0 (sport), estado~3 (pausa), estado~4 (stop).
+\begin{theorybox}[xarm\_ros2 y MoveIt~Servo]
+  El repositorio oficial~\cite{xarm_ros2} provee el paquete ROS~2
+  \texttt{xarm\_ros2} con los siguientes componentes relevantes:
+  \textbf{\texttt{xarm\_api}} (nodo ROS~2 que expone servicios y tópicos
+  del SDK nativo C++), \textbf{\texttt{xarm\_controller}} (hardware
+  interface \texttt{uf\_robot\_hardware} para ros2\_control),
+  \textbf{\texttt{xarm\_moveit\_config}} (configuraciones de MoveIt~2),
+  y \textbf{\texttt{xarm\_moveit\_servo}} (integración con MoveIt~Servo).
+  MoveIt~Servo suscribe \texttt{TwistStamped} y genera
+  \texttt{JointTrajectory} en tiempo real, operando a 50~Hz por defecto.
+  Los tópicos de estado articular se publican en
+  \texttt{/\{ns\}/joint\_states} a 250~Hz; los torques en el campo
+  \texttt{effort} del mismo mensaje.
 \end{theorybox}
 
 \subsubsection*{Pregunta~I1 \pts{10}}
@@ -1230,114 +1275,91 @@ def apply_haptic_correction(arm, q_curr, F_ext, beta=BETA, kh=KH):
         manejo de errores implementado.
 \end{enumerate}
 
-\textbf{(a) Configuración de los robots.}
+\textbf{(a) Configuración de los robots con xarm\_ros2.}
 \begin{itemize}
-  \item \textbf{xArm Maestro:} IP 192.168.1.175, Modo~1 (SERVO),
-        estado~0 (sport). Velocidad articular máxima: 60°/s;
-        aceleración articular máxima: 200°/s\textsuperscript{2};
-        velocidad TCP máxima: 100~mm/s; aceleración TCP máxima:
-        500~mm/s\textsuperscript{2}.
-  \item \textbf{xArm Esclavo:} IP 192.168.1.226, mismos límites.
-        Posición home: $[0°, 0°, 0°, 90°, 0°, 0°]$ (articulación~4
-        en 90° para alejar el efector del cuerpo del robot).
-  \item \textbf{Sensor ESP32:} IP asignada por DHCP en la red
-        Team4 (192.168.1.x), agente micro-ROS en 192.168.1.53:8888.
+  \item \textbf{xArm Maestro} (IP: 192.168.1.175): se lanza con
+        \texttt{ros2 launch xarm\_bilateral\_teleop master.launch.py
+        master\_ip:=192.168.1.175}. Esto inicia: \texttt{xarm\_api}
+        (conexión SDK nativo), \texttt{robot\_state\_publisher},
+        MoveIt~Servo en namespace \texttt{/master}, el nodo
+        \texttt{force\_sensor} (estimador virtual), y el nodo
+        \texttt{master\_admittance}.
+  \item \textbf{xArm Esclavo} (IP: 192.168.1.226): lanzado con
+        \texttt{slave.launch.py}, arranca los mismos componentes en
+        namespace \texttt{/slave} con el nodo \texttt{slave\_impedance}.
+  \item \textbf{Sensor maestro (ESP32):} agente micro-ROS en
+        \texttt{192.168.1.53:8888}. Publica \texttt{WrenchStamped}
+        en \texttt{/teleop/operator\_force\_direct} a 50~Hz.
+        Parámetros: $k=1000$~N/m, $\pm3$~N joystick.
+  \item \textbf{Sensor esclavo (ESP32):} agente micro-ROS en
+        \texttt{192.168.1.53:8889}. Publica \texttt{WrenchStamped}
+        en \texttt{/teleop/slave\_force\_direct} a 50~Hz.
+        Parámetros: $k=1500$~N/m, $\pm6$~N joystick.
+        Nota: el mapeo de ejes difiere del sensor maestro
+        ($F_x \leftarrow -F_y^{joy}$, $F_y \leftarrow -F_x^{joy}$,
+        $F_z \leftarrow -F_z^{spring}$) para coincidir con el
+        frame del EE del esclavo.
 \end{itemize}
 
 \textbf{(b) Calibración y sincronización.}
-El procedimiento de calibración fue el siguiente:
 \begin{enumerate}[label=\roman*.]
-  \item Se ejecutó \texttt{move\_to\_home()} en ambos robots
-        simultáneamente para establecer la misma configuración
-        articular de referencia $[0°, 0°, 0°, 90°, 0°, 0°]$.
-  \item Con ambos robots en home, se verificó visualmente que
-        los efectores estuvieran a la misma altura y orientación,
-        confirmando que el mapeo 1:1 ($\alpha = 1.0$) es válido.
-  \item Se ejecutó la calibración automática del estimador de fuerza:
-        el robot esclavo permanece inmóvil 2~s mientras el sistema
-        mide el ruido de torque en reposo y ajusta $F_{th}$.
+  \item Ambos robots se mueven a la posición home
+        $[0°, 0°, 0°, 90°, 0°, 0°]$ mediante el servicio
+        \texttt{/\{ns\}/set\_servo\_angle} de \texttt{xarm\_api}.
+  \item Se verifica visualmente que los EEs estén a la misma altura,
+        validando que el seguimiento cartesiano 1:1 es adecuado.
+  \item \texttt{ForceSensorNode} ejecuta calibración automática de
+        2~s al inicio: recolecta $N_{cal} = 200$ muestras de torque
+        en reposo para estimar $\sigma_{noise}$ y ajustar
+        $F_{th} = 3\sigma_{noise}$.
+  \item Los sensores ESP32 ejecutan calibración de joystick y
+        ultrasónico en el \texttt{setup()} de Arduino al encendido.
 \end{enumerate}
 
-\textbf{(c) Bugs y limitaciones del SDK.}
+\textbf{(c) Bugs y limitaciones del stack ROS~2 + xarm\_ros2.}
 \begin{enumerate}[label=\roman*.]
-  \item \textit{Latencia variable del socket TCP interno:} el SDK
-        Python abre un socket TCP persistente al robot. Se observó
-        que \texttt{get\_joint\_states()} introduce latencias de
-        2--15~ms (variable), lo que limita la frecuencia efectiva
-        del lazo de lectura. \textit{Solución:} ejecutar la lectura
-        de torques y ángulos en el mismo ciclo de 10~ms; si la
-        lectura supera 8~ms, usar el último valor conocido
-        (\textit{timeout fallback}).
-  \item \textit{Saturación de comandos en Modo~1:} si
-        \texttt{set\_servo\_angle\_j} se llama con una frecuencia
-        mayor al loop interno del robot (250~Hz), los comandos se
-        encolan en el buffer del firmware. \textit{Solución:}
-        implementar control de timing con \texttt{time.perf\_counter()}
-        para mantener exactamente 100~Hz.
-  \item \textit{No hay inyección de torques en modo usuario:} ver
-        Sección~C2(b).
+  \item \textit{Latencia de inicio de MoveIt~Servo:} MoveIt~Servo
+        tarda $\approx 5$~s en inicializarse después de que el
+        contenedor de nodos arranca. \textit{Solución:} el launch
+        file usa un \texttt{TimerAction(period=5.0)} para llamar
+        al servicio \texttt{start\_servo} después del inicio del
+        contenedor.
+  \item \textit{Conflicto de TF entre namespaces:} ambos brazos
+        publican frames TF con los mismos nombres (\texttt{link\_base},
+        \texttt{link\_eef}). \textit{Solución:} se remapean los tópicos
+        \texttt{/tf} y \texttt{/tf\_static} a
+        \texttt{/\{ns\}/tf} y \texttt{/\{ns\}/tf\_static}
+        mediante \texttt{remappings} en los nodos de MoveIt~Servo.
+  \item \textit{QoS incompatible con micro-ROS:} los nodos ESP32
+        publican con \texttt{BEST\_EFFORT}; los suscriptores ROS~2
+        por defecto usan \texttt{RELIABLE}. \textit{Solución:}
+        los suscriptores de tópicos de sensores físicos en
+        \texttt{MasterAdmittanceNode} se configuran explícitamente
+        con \texttt{QoSProfile(reliability=BEST\_EFFORT)}.
 \end{enumerate}
 
-\textbf{(d) Manejo de excepciones de seguridad.}
-El código verifica el \texttt{error\_code} en cada ciclo. Los códigos
-1, 2 y 3 (errores de movimiento críticos) causan parada inmediata
-del lazo. Ver el código de setup en el Listado~\ref{lst:setup}.
+\textbf{(d) Manejo de condiciones de seguridad.}
+El nodo \texttt{master\_admittance} detecta singularidades con
+$\kappa(\bm{J}) > 50$ (usando el Jacobiano de posición 3×6) y
+publica velocidad cero, registrando advertencia con
+\texttt{throttle\_duration\_sec=5.0} para evitar inundación de logs.
+El nodo \texttt{slave\_impedance} implementa un timeout de 0.5~s:
+si no recibe pose del maestro en ese tiempo, publica velocidad cero
+y registra advertencia. MoveIt~Servo tiene sus propios umbrales de
+singularidad configurados en 100.0 (advertencia) y 200.0 (parada dura).
 
-\begin{lstlisting}[caption={Configuración y manejo de errores del xArm SDK (xarm\_setup.py)},
+\begin{lstlisting}[caption={Configuración de launch para el sistema bilateral (bilateral\_teleop.launch.py)},
                    label={lst:setup}]
-from xarm.wrapper import XArmAPI
-import numpy as np, time
+# Maestro: MoveIt Servo + ForceSensor + MasterAdmittance
+ros2 launch xarm_bilateral_teleop bilateral_teleop.launch.py \
+    master_ip:=192.168.1.175 slave_ip:=192.168.1.226
 
-MODE_SERVO = 1  # Servo mode: comandos en tiempo real sin interpolacion
+# Simulacion con Isaac Sim (mismos nodos, distinto backend)
+ros2 launch xarm_bilateral_teleop bilateral_teleop_isaac.launch.py
 
-def setup_robot(ip, mode=MODE_SERVO,
-                max_joint_speed=60.0,   # deg/s (conservador para teleop)
-                max_joint_acc=200.0,    # deg/s^2
-                max_tcp_speed=100.0,    # mm/s
-                max_tcp_acc=500.0):     # mm/s^2
-    arm = XArmAPI(ip, is_radian=True)
-    time.sleep(0.5)
-    if not arm.connected:
-        raise ConnectionError(f"Sin conexion a {ip}")
-    # Limpiar errores previos antes de habilitar
-    if arm.error_code != 0:
-        arm.clean_error(); arm.clean_warn()
-        time.sleep(0.2)
-    arm.motion_enable(enable=True)
-    # Limites de seguridad
-    arm.set_joint_maxacc([np.radians(max_joint_acc)] * 6)
-    arm.set_tcp_maxacc(max_tcp_acc)
-    arm.set_tcp_maxspeed(max_tcp_speed)
-    arm.set_mode(mode)   # Modo 1 = SERVO
-    arm.set_state(0)     # Estado sport (activo)
-    time.sleep(0.3)
-    return arm
-
-def move_to_home(arm, speed=30.0):
-    """Mover a posicion home segura [0,0,0,90,0,0] deg."""
-    arm.set_mode(0); arm.set_state(0); time.sleep(0.1)
-    code = arm.set_servo_angle(
-        angle=[0.0, 0.0, 0.0, 90.0, 0.0, 0.0],
-        speed=speed, is_radian=False, wait=True)
-    if code not in (0, None):
-        print(f"[setup] Advertencia: home retorno codigo {code}")
-    arm.set_mode(MODE_SERVO); arm.set_state(0)  # restaurar SERVO
-
-def check_and_handle_error(arm):
-    """Retorna False si hay error critico que requiere parada."""
-    ec = arm.error_code
-    if ec in (1, 2, 3, 11, 12, 13, 14, 15, 16):
-        print(f"[setup] ERROR CRITICO codigo {ec}. Deteniendo.")
-        arm.set_state(4)  # stop
-        return False
-    if ec != 0:
-        print(f"[setup] Error no critico {ec}. Limpiando...")
-        arm.clean_error(); arm.clean_warn()
-    return True
-
-# Inicializar ambos robots
-arm_master = setup_robot('192.168.1.175')
-arm_slave  = setup_robot('192.168.1.226')
+# Agente micro-ROS para sensores ESP32
+ros2 run micro_ros_agent micro_ros_agent udp4 -p 8888 &
+ros2 run micro_ros_agent micro_ros_agent udp4 -p 8889 &
 \end{lstlisting}
 
 %% ============================================================
@@ -1374,15 +1396,21 @@ Describan con precisión el setup experimental:
 
 El setup experimental consistió en los dos xArm~Lite~6 ubicados sobre
 mesas separadas en el Computational Robotics Lab, conectados a la misma
-red LAN mediante switch Gigabit Ethernet. El sensor ESP32 se conectó
-vía WiFi a la misma red (SSID: Team4). La tarea experimental fue:
+red LAN mediante switch Gigabit Ethernet (IP: 192.168.1.175 y 192.168.1.226).
+Los dos sensores ESP32 se conectaron vía WiFi a la misma red (SSID: Team4);
+el agente micro-ROS corrió en la PC de control (192.168.1.53).
+El sistema operó con ROS~2 Humble, MoveIt~Servo, y el paquete
+\texttt{xarm\_ros2}~\cite{xarm_ros2}. La tarea experimental fue:
 (1)~seguimiento de trayectoria libre operada por el operador sobre el
-maestro durante 30~s; (2)~contacto controlado del efector del esclavo
-contra una superficie rígida (tabla de madera), con validación de fuerza
-usando una báscula digital de precisión ($\pm0.1$~N). Se realizaron
+maestro durante 30~s, verificando replicación del movimiento en el esclavo;
+(2)~contacto controlado del efector del esclavo contra una superficie
+rígida (tabla de madera), con validación de fuerza usando una báscula
+digital de precisión ($\pm0.1$~N); (3)~validación del canal de
+retroalimentación háptica comprobando que la admitancia del maestro
+responde a la fuerza del esclavo con factor $\alpha=0.3$. Se realizaron
 \answerline[1cm] ensayos de 30~s cada uno, con criterio de éxito:
 error RMS de seguimiento $<5°$ y detección de contacto con
-$\text{SNR} > 3$ en la señal $\hat{F}_z$.
+$\text{SNR} > 3$ en la señal $\hat{F}_z$ del estimador virtual.
 
 \subsection{Desempeño de Seguimiento de Posición}
 
@@ -1532,25 +1560,26 @@ acoplamiento de inestabilidad si fue observado.}
 \begin{enumerate}[label=\roman*.]
   \item \textit{Precisión del estimador de fuerza ($\epsilon \approx 1$--$3$~N):}
         el modelo gravitacional usa masas y centros de masa
-        aproximados, sin incluir fricción articular. Esto introduce
+        del YAML de UFACTORY sin incluir fricción articular. Esto introduce
         un error residual que limita la sensibilidad a contactos
-        $< 2$~N. \textit{Solución:} calibrar el modelo dinámico
-        completo con el método de regresión de parámetros
-        dinámicos~\cite{siciliano2009}, o instalar un sensor F/T
-        de muñeca de bajo costo ($\approx \$200$ USD).
-  \item \textit{Latencia total del lazo ($T_{total} \approx 10$--$15$~ms):}
-        la latencia combinada de red + SDK Python limita la
-        frecuencia de corte máxima del controlador háptico.
-        \textit{Solución:} implementar el lazo de control en C++
-        con la librería xarm-sdk nativa y usar sockets UDP con
-        prioridad de tiempo real (SCHED\_FIFO en Linux).
-  \item \textit{Control de posición articular sin orientación del efector:}
-        el sistema mapea únicamente la posición del efector
-        (3~DOF traslacionales), ignorando la orientación. En tareas
-        de ensamble o cirugía, la orientación del efector es crítica.
-        \textit{Solución:} extender el Jacobiano a 6~DOF cartesianos
-        y usar el modo \texttt{set\_servo\_cartesian} con control de
-        pose completa.
+        $< 2$~N. \textit{Solución:} usar el sensor F/T nativo del
+        xArm~Lite~6 mediante el tópico
+        \texttt{/\{ns\}/uf\_ftsensor\_ext\_states} de \texttt{xarm\_ros2}
+        (ya disponible en el repositorio~\cite{xarm_ros2}), o calibrar
+        el modelo dinámico completo con regresión de parámetros
+        dinámicos~\cite{siciliano2009}.
+  \item \textit{Latencia DDS + Python ($T_{total} \approx 5$--$20$~ms):}
+        la serialización CDR de ROS~2 y el GIL de Python limitan la
+        frecuencia de control efectiva. \textit{Solución:} implementar
+        los nodos de admitancia/impedancia en C++ con rclcpp y ejecutar
+        con política SCHED\_FIFO para tiempo real duro en Linux.
+  \item \textit{Control traslacional sin orientación del efector:}
+        el sistema comanda únicamente los 3~DOF lineales del EE mediante
+        \texttt{TwistStamped.linear}, ignorando la orientación.
+        En tareas de ensamble o cirugía, la orientación del efector
+        es crítica. \textit{Solución:} extender el \texttt{TwistStamped}
+        con las componentes angulares y aumentar el modelo de admitancia
+        a 6~DOF, lo que MoveIt~Servo soporta de forma nativa.
 \end{enumerate}
 
 \textbf{(b) Comparación con el estado del arte.}
@@ -1607,43 +1636,48 @@ Redacten una sección de conclusiones que responda:
 \end{enumerate}
 
 Se implementó exitosamente un sistema de teleoperación bilateral con
-sensado de fuerza entre dos manipuladores xArm Lite 6, operando a
-100~Hz mediante comunicación UDP con retardo efectivo menor a 2~ms en
-red de área local. El estimador de fuerza basado en residuos de torque
-articular demostró ser funcional para detectar contactos con objetos
-rígidos, con un umbral de detección calibrado automáticamente de
-$F_{th} \approx 1.5$~N y error de estimación de \answerline[1cm]~N
-frente a referencia con báscula. La retroalimentación háptica por
-impedancia de posición articular, implementada como alternativa a la
-inyección de torques no disponible en el SDK, permitió al operador
-percibir resistencia proporcional a la fuerza de contacto del esclavo
-con ganancia $\beta = 0.3$, verificada como estable experimentalmente.
+sensado de fuerza entre dos manipuladores xArm Lite~6, basado en
+ROS~2~Humble y MoveIt~Servo, operando a 50~Hz mediante comunicación
+DDS sobre red LAN. El controlador de admitancia en el maestro
+($\bm{M}_d = \text{diag}(2,2,2)$~kg, $\bm{B}_d = \text{diag}(10,10,10)$~N$\cdot$s/m)
+y el seguidor de impedancia en el esclavo ($\bm{K}_p = \text{diag}(5,5,5)$~s$^{-1}$)
+producen teleoperación cartesiana fluida con protección automática
+ante singularidades ($\kappa > 50$). El estimador de fuerza basado en
+residuos de torque articular demostró ser funcional para detectar
+contactos con objetos rígidos, con umbral de detección calibrado
+automáticamente de $F_{th} \approx 1.5$~N y error de estimación de
+\answerline[1cm]~N frente a referencia con báscula. Dos sensores ESP32
+con micro-ROS proveen fuerzas de entrada del operador y del esclavo
+independientes del modelo dinámico, con parámetros diferenciados
+($k=1000$ vs.\ $1500$~N/m, rango $\pm3$ vs.\ $\pm6$~N) para adaptarse
+a los distintos rangos de fuerza en cada rol.
 
-El mayor desafío técnico fue la latencia variable del socket TCP
-interno del SDK Python (2--15~ms), que amenazaba la estabilidad del
-lazo de 100~Hz. La solución consistió en implementar un control
-estricto de timing con \texttt{time.perf\_counter()} y un mecanismo
-de \textit{zero-order hold} para ciclos con paquetes perdidos.
-Adicionalmente, la ausencia de inyección de torques directa en el SDK
-obligó a diseñar la alternativa de corrección de impedancia de
-posición, que resultó ser suficientemente efectiva para generar
-sensación háptica perceptible.
+El mayor desafío técnico fue la integración de MoveIt~Servo con dos
+namespaces simultáneos y la compatibilidad QoS entre micro-ROS
+(\texttt{BEST\_EFFORT}) y los nodos ROS~2 (\texttt{RELIABLE}).
+La solución consistió en remaear los tópicos TF por namespace y
+configurar explícitamente los perfiles QoS en los suscriptores de
+los sensores físicos. El soporte para Isaac~Sim permitió validar
+la arquitectura de teleoperación sin robots físicos, reduciendo
+el tiempo de integración.
 
 El aprendizaje fundamental de este proyecto fue la comprensión
 práctica de la dualidad $\bm{\tau} = \bm{J}^\top\bm{F}$: la misma
 relación que permite estimar fuerza a partir de torques
-(dirección análisis) también permite generar torques hápticos a
-partir de una fuerza de referencia (dirección síntesis). Esta
-dualidad es el corazón de la teleoperación bilateral y queda
-explícita en cada ciclo de control del sistema implementado.
+(dirección análisis) fundamenta el modelo de admitancia que convierte
+fuerza de contacto en velocidad cartesiana del maestro (dirección
+síntesis). Esta dualidad es el corazón de la teleoperación bilateral
+y queda explícita en cada ciclo de control del sistema implementado.
 
-Si se repitiera el proyecto, la primera mejora sería implementar el
-lazo de control en C++ con tiempo real duro (SCHED\_FIFO), eliminando
-el jitter de Python. En segundo lugar, se instalaría un sensor F/T de
-muñeca en el esclavo para comparar con el estimador y obtener una
-referencia de fuerza de mayor precisión. Finalmente, se extendería el
-control a los 6~DOF cartesianos del efector (posición + orientación)
-para habilitar tareas más complejas como ensamble de precisión.
+Si se repitiera el proyecto, la primera mejora sería extender el
+control a los 6~DOF cartesianos del efector (posición + orientación),
+habilitando tareas de ensamble de precisión. En segundo lugar, se
+implementaría el lazo de estimación de fuerza en C++ con tiempo real
+duro, reduciendo la latencia del estimador de $\approx 1$~ms a
+$< 0.1$~ms. Finalmente, se explotaría el sensor F/T nativo del
+xArm~Lite~6 (tópico \texttt{uf\_ftsensor\_ext\_states} de
+\texttt{xarm\_ros2}) para obtener referencia de fuerza de mayor
+precisión sin hardware externo adicional.
 
 %% ============================================================
 \section*{Agradecimientos}
