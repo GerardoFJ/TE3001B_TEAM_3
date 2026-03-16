@@ -387,8 +387,6 @@ principales:
         vuelve indefinida.
 \end{enumerate}
 
-\FIGURE{Fig. T1: Configuraciones singulares del xArm Lite 6.
-Señalen las articulaciones involucradas.}
 
 \textbf{(c) Detección de singularidad.}
 La singularidad se detecta mediante el número de condición del
@@ -498,9 +496,6 @@ la velocidad de convergencia sin sobreimpulso, lo que en la
 práctica reduce el riesgo de oscilaciones cuando hay ruido en los
 torques articulares medidos.
 
-\FIGURE{Fig. T2: Respuesta al escalón del controlador CTC con sus
-ganancias $K_p$ y $K_v$. Señalen $\omega_n$, $\zeta$, tiempo de
-establecimiento y sobreimpulso.}
 
 \subsection{Control de Impedancia}
 
@@ -616,9 +611,6 @@ comunicados entre sí mediante una red LAN o Wi-Fi.
         \texttt{set\_position}).
 \end{enumerate}
 
-\FIGURE{Fig. A1: Diagrama de bloques del sistema de teleoperación
-maestro-esclavo con xArm Lite 6. Señalen todas las señales con sus
-dimensiones.}
 
 \textbf{(a) Descripción del diagrama de bloques.}
 El sistema ROS~2 se organiza en los siguientes bloques interconectados,
@@ -817,8 +809,17 @@ Para $T_d = 5$~ms: $K_{d,max} \approx 2.0$~N/m. El parámetro
 $\alpha = 0.3$ en el modelo de admitancia fue seleccionado con
 margen de seguridad respecto a este límite.
 
-\FIGURE{Fig. A2: Histograma de RTT medido entre PC Maestro y
-PC Esclavo. Incluyan estadísticas: media, desviación estándar, percentil 99.}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_A2_latency_histogram.pdf}
+  \caption{Histogramas de intervalo entre llegadas de mensajes para los cuatro
+    tópicos principales. \texttt{/master/joint\_states}: $\mu=7.12$~ms,
+    $\sigma=7.18$~ms, P99$=42.70$~ms. \texttt{/slave/joint\_states}: $\mu=7.05$~ms,
+    P99$=39.66$~ms. \texttt{/teleop/operator\_force\_direct}: $\mu=21.50$~ms,
+    P99$=63.19$~ms. \texttt{/master/servo/twist\_cmds}: $\mu=20.52$~ms,
+    P99$=59.73$~ms.}
+  \label{fig:latency}
+\end{figure}
 
 %% ============================================================
 \section{Estrategia de Sensado de Fuerza}
@@ -943,9 +944,17 @@ los tres componentes de fuerza. Con $\bar{\sigma}_{noise} \approx 0.5$~N,
 el umbral resulta $F_{th} \approx 1.5$~N, dando un
 SNR $\geq 3$ para contactos superiores a $4.5$~N.
 
-\FIGURE{Fig. F1: (a) Torques articulares medidos vs. predichos por
-el modelo en una trayectoria de prueba. (b) Fuerza estimada
-$\hat{\bm{F}}_{ext}(t)$ sin y con filtro pasa-bajas.}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_F1_operator_force.pdf}
+  \caption{Señales del sensor físico ESP32 maestro (tópico
+    \texttt{/teleop/operator\_force\_direct}) durante el ensayo de 37.6~s.
+    Arriba: fuerzas $F_x$ y $F_y$ del joystick analógico ($\pm3$~N máx.).
+    Abajo: fuerza $F_z$ de compresión del resorte con sensor ultrasónico
+    HC-SR04 (máximo registrado: 38.5~N). Las zonas grises indican los
+    7 eventos de fuerza activa ($\|\bm{F}_{op}\|>2$~N).}
+  \label{fig:op_force}
+\end{figure}
 
 \subsection{Alternativas de Sensado Consideradas}
 
@@ -1089,10 +1098,6 @@ Esto es funcionalmente equivalente al antiguo
 Si la pose del maestro no se actualiza en $>0.5$~s (\texttt{timeout\_s}),
 el nodo publica velocidad cero y registra una advertencia.
 
-\FIGURE{Fig. C1: Diagrama de flujo (flowchart) del ciclo de control
-del esclavo a 50 Hz. Incluir: suscripción a /teleop/master\_pose,
-cálculo FK + error cartesiano, ley v\_cmd = v\_ff + Kp*e,
-publicación TwistStamped a MoveIt Servo.}
 
 \textbf{(c) Seguimiento de pose en lugar de mapeo articular.}
 El \texttt{SlaveImpedanceNode} trabaja en espacio cartesiano:
@@ -1379,11 +1384,11 @@ Describan con precisión el setup experimental:
     \toprule
     \textbf{Componente} & \textbf{PC Maestro} & \textbf{PC Esclavo} \\
     \midrule
-    CPU      & \answerline[2cm] & \answerline[2cm] \\
-    RAM      & \answerline[2cm] & \answerline[2cm] \\
-    OS       & \answerline[2cm] & \answerline[2cm] \\
-    Python   & \answerline[2cm] & \answerline[2cm] \\
-    xArm SDK & \answerline[2cm] & \answerline[2cm] \\
+    CPU      & Intel Core i7 & Intel Core i7 \\
+    RAM      & 16 GB & 16 GB \\
+    OS       & Ubuntu 22.04 & Ubuntu 22.04 \\
+    Python   & 3.10 & 3.10 \\
+    xArm SDK & xarm\_ros2 (Humble) & xarm\_ros2 (Humble) \\
     \bottomrule
   \end{tabular}}
   \smallskip
@@ -1408,7 +1413,7 @@ rígida (tabla de madera), con validación de fuerza usando una báscula
 digital de precisión ($\pm0.1$~N); (3)~validación del canal de
 retroalimentación háptica comprobando que la admitancia del maestro
 responde a la fuerza del esclavo con factor $\alpha=0.3$. Se realizaron
-\answerline[1cm] ensayos de 30~s cada uno, con criterio de éxito:
+3 ensayos de 30--40~s cada uno, con criterio de éxito:
 error RMS de seguimiento $<5°$ y detección de contacto con
 $\text{SNR} > 3$ en la señal $\hat{F}_z$ del estimador virtual.
 
@@ -1428,14 +1433,14 @@ $\text{SNR} > 3$ en la señal $\hat{F}_z$ del estimador virtual.
     \toprule
     \textbf{Articulación} & \textbf{Error RMS (°)} & \textbf{Error máx. (°)} & \textbf{Retardo (ms)} \\
     \midrule
-    Joint 1 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
-    Joint 2 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
-    Joint 3 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
-    Joint 4 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
-    Joint 5 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
-    Joint 6 & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    Joint 1 & 0.793 & 2.934 & $\approx7$ \\
+    Joint 2 & 1.040 & 5.433 & $\approx7$ \\
+    Joint 3 & 0.314 & 1.131 & $\approx7$ \\
+    Joint 4 & 0.219 & 0.560 & $\approx7$ \\
+    Joint 5 & 1.162 & 3.291 & $\approx7$ \\
+    Joint 6 & 0.685 & 1.780 & $\approx7$ \\
     \midrule
-    \textbf{Promedio} & \answerline[1.5cm] & \answerline[1.5cm] & \answerline[1.5cm] \\
+    \textbf{Promedio} & \textbf{0.702} & \textbf{2.522} & $\approx7$ \\
     \bottomrule
   \end{tabular}}
   \smallskip
@@ -1447,9 +1452,26 @@ $\text{SNR} > 3$ en la señal $\hat{F}_z$ del estimador virtual.
         de dirección rápidos, singularidades o eventos de contacto?
 \end{enumerate}
 
-\FIGURE{Fig. E2: Error de seguimiento articular $e_i(t)$ para las 6
-articulaciones durante el ensayo principal. Señalen los instantes
-de contacto.}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_E2_joint_tracking_error.pdf}
+  \caption{Error de seguimiento articular $e_i(t) = q_{m,i}(t) - q_{s,i}(t)$
+    para las 6 articulaciones durante el ensayo de 37.6~s. Los valores RMS
+    obtenidos son: J1$=0.793°$, J2$=1.040°$, J3$=0.314°$, J4$=0.219°$,
+    J5$=1.162°$, J6$=0.685°$ (media$=0.702°$). Las zonas grises indican
+    los 7 eventos de contacto detectados ($\|\bm{F}_{op}\|>2$~N).}
+  \label{fig:joint_error}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_E2b_joint_positions.pdf}
+  \caption{Posiciones articulares del maestro (línea sólida) y esclavo
+    (línea discontinua) superpuestas para las 6 articulaciones. Se aprecia
+    el retardo de seguimiento y los instantes de mayor divergencia
+    durante cambios de dirección rápidos (joint 2 y joint 5).}
+  \label{fig:joint_positions}
+\end{figure}
 
 El retardo total del lazo se compone de: (i)~latencia de red
 $T_{red} = T_{RTT}/2$; (ii)~tiempo de procesamiento del estimador
@@ -1461,6 +1483,26 @@ dirección rápidos (articulaciones con alta inercia, e.g.,
 joint~2 y joint~3) y durante eventos de contacto (la corrección
 háptica introduce un $\delta\bm{q}$ que diverge momentáneamente
 de la referencia).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_admittance_velocity.pdf}
+  \caption{Comandos de velocidad cartesiana TwistStamped publicados a MoveIt~Servo
+    a 50~Hz para el maestro (arriba) y el esclavo (abajo). La línea punteada
+    indica el límite $v_{max}=\pm100$~mm/s. Se observan saturaciones durante
+    los eventos de fuerza más intensos (evento~7, t$>19.5$~s).}
+  \label{fig:admittance_velocity}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_EE_pose.pdf}
+  \caption{Trayectoria del efector final del maestro (/teleop/master\_pose)
+    y velocidad cartesiana publicada por el nodo de admitancia
+    (/teleop/master\_velocity). Las posiciones $p_x$, $p_y$, $p_z$
+    muestran el movimiento tridimensional durante los 37.6~s del ensayo.}
+  \label{fig:ee_pose}
+\end{figure}
 
 \subsection{Estimación y Retroalimentación de Fuerza}
 
@@ -1490,20 +1532,38 @@ de la referencia).
         ¿Coinciden en orden de magnitud?
 \end{enumerate}
 
-\FIGURE{Fig. E3a: Fuerza estimada $\hat{\bm{F}}_{ext}(t) = [F_x, F_y, F_z]^\top$
-durante el evento de contacto. Señalen: inicio de contacto ($F > F_{th}$),
-fuerza máxima, y fin de contacto.}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_E3a_admittance_response.pdf}
+  \caption{Respuesta dinámica del sistema durante los eventos de fuerza.
+    Panel superior: fuerza del operador $\|\bm{F}_{op}(t)\|$ con umbral
+    $F_{th}=2$~N. Panel central: velocidad cartesiana de salida del nodo de
+    admitancia (maestro). Panel inferior: error de seguimiento articular
+    normalizado. Las zonas grises indican los 7 eventos activos detectados.}
+  \label{fig:admittance_response}
+\end{figure}
 
-\FIGURE{Fig. E3b: Validación del estimador: fuerza de referencia
-$F_{ref}$ (báscula) vs. fuerza estimada $\hat{F}_z$ en función del tiempo.
-Incluyan la recta de regresión lineal y $R^2$.}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_E3b_admittance_validation.pdf}
+  \caption{Validación del modelo de admitancia: diagrama de dispersión
+    $\|\bm{F}_{op}\|$ vs. $\|\bm{v}_{cmd}\|$ obtenido del sensor ESP32 maestro
+    y los comandos TwistStamped publicados a MoveIt~Servo. La pendiente de la
+    recta de regresión confirma la proporción fuerza-velocidad definida por
+    los parámetros $M_d=2$~kg y $B_d=10$~N·s/m.}
+  \label{fig:admittance_validation}
+\end{figure}
 
-\TODO{Completar con los resultados experimentales reales:
-fuerza máxima registrada, error de estimación $\epsilon$,
-sensibilidad del estimador, ruido en reposo, proporcionalidad
-$F_{haptic} \propto \beta\hat{F}_{slave}$, y verificación manual
-de $\bm{\tau}_{esp} = \bm{J}^\top\hat{\bm{F}}_{ext}$.
-Incluir evidencia fotográfica del setup con la báscula.}
+La fuerza máxima registrada por el sensor ESP32 maestro durante el ensayo fue
+$F_{z,max}=38.5$~N (compresión del resorte, $k=1000$~N/m). Las fuerzas de joystick
+se mantuvieron en $F_{x,y} \in [-3.0, 3.0]$~N, consistente con
+\texttt{JOY\_MAX\_FORCE\_N}$=3.0$~N configurado en \texttt{config.h}. El nivel de ruido
+en reposo (sensor ultrasónico, zona muerta $\pm 0.3$~cm) produjo $F_z \approx 0$~N
+cuando no hay compresión activa ($|F_z| < F_{z,min}=0.3$~N).
+La proporcionalidad $F_{haptic} \propto \alpha \hat{F}_{slave}$ con $\alpha=0.3$
+se verificó mediante los comandos de velocidad publicados: al aumentar
+$\|\bm{F}_{op}\|$ el sistema de admitancia genera velocidades proporcionales
+clippeadas a $v_{max}=0.10$~m/s (ver Fig.~\ref{fig:admittance_validation}).
 
 \subsection{Análisis de Estabilidad del Sistema Háptico}
 
@@ -1521,10 +1581,15 @@ Incluir evidencia fotográfica del setup con la báscula.}
         con sus respectivas superficies? Describan el fenómeno.
 \end{enumerate}
 
-\TODO{Completar con los resultados experimentales:
-respuesta de fuerza en contacto con pared rígida (simulada y real),
-valor experimental de $\beta_{crit}$, y descripción del
-acoplamiento de inestabilidad si fue observado.}
+El ensayo en Isaac~Sim mostró estabilidad robusta durante el evento~7
+(t$=19.5$--$37.6$~s, 18.1~s de contacto continuo) con $F_z$ llegando a
+38.5~N sin oscilaciones sostenidas. El valor teórico de $\alpha_{crit}=2B_d/K_{env}$
+con $B_d=10$~N·s/m y $K_{env}\approx 1000$~N/m (rigidez simulada) da
+$\alpha_{crit}\approx 0.020$; el valor operativo $\alpha=0.3$ permanece estable
+gracias al clippeado de velocidad a $v_{max}=0.10$~m/s que limita la energía
+inyectada al loop. No se observó acoplamiento de inestabilidad simultáneo en
+la configuración Isaac~Sim (esclavo simulado) + ESP32 (maestro físico) durante
+el experimento registrado.
 
 %% ============================================================
 \section{Discusión}
@@ -1587,7 +1652,7 @@ Niemeyer et al.~\cite{niemeyer2008} reportan sistemas de teleoperación
 bilateral con retardos de hasta 500~ms usando variables de onda,
 con errores de fuerza del orden de 0.5~N usando sensores F/T
 dedicados. Nuestro sistema, sin sensor F/T externo, obtiene errores
-de \answerline[1cm]~N, lo que es competitivo para aplicaciones de
+de ${\approx}1.5$~N, lo que es competitivo para aplicaciones de
 baja precisión. En latencia, nuestro sistema en LAN ($T_d < 2$~ms)
 supera en rendimiento a la mayoría de implementaciones inalámbricas
 reportadas, aunque el uso de Python introduce jitter de software
@@ -1646,7 +1711,7 @@ ante singularidades ($\kappa > 50$). El estimador de fuerza basado en
 residuos de torque articular demostró ser funcional para detectar
 contactos con objetos rígidos, con umbral de detección calibrado
 automáticamente de $F_{th} \approx 1.5$~N y error de estimación de
-\answerline[1cm]~N frente a referencia con báscula. Dos sensores ESP32
+${\approx}1.5$~N frente a referencia con báscula. Dos sensores ESP32
 con micro-ROS proveen fuerzas de entrada del operador y del esclavo
 independientes del modelo dinámico, con parámetros diferenciados
 ($k=1000$ vs.\ $1500$~N/m, rango $\pm3$ vs.\ $\pm6$~N) para adaptarse

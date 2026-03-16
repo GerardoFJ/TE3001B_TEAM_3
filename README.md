@@ -1,161 +1,204 @@
 # TE3001B — Team 4
 
-**Fundamentacion de Robotica** — Tecnologico de Monterrey, 2026
+**Fundamentacion de Robotica** — Tecnológico de Monterrey, 2026
 
-ROS 2 (Humble) workspace for xArm Lite 6 control, teleoperation, and embedded motor control.
+ROS 2 (Humble) workspace for bilateral teleoperation with force sensing between two xArm Lite 6 robots, using MoveIt Servo and micro-ROS ESP32 physical force sensors.
+
+---
+
+## Delivery Checklist
+
+| Item | Location |
+|------|----------|
+| `reporte.pdf` | `Documents/ReporteFinal_Team4.pdf` |
+| `reporte.tex` | `Documents/ReporteFinal_Team4.tex` |
+| `master_control.py` | `src/xarm_bilateral_teleop/xarm_bilateral_teleop/master_node.py` |
+| `slave_control.py` | `src/xarm_bilateral_teleop/xarm_bilateral_teleop/slave_node.py` |
+| `force_estimator.py` | `src/xarm_bilateral_teleop/xarm_bilateral_teleop/force_estimator.py` |
+| `net_test.py` | `src/xarm_teleops/src/net_test.py` |
+| `data/` (bag file) | `papubag/papubag_0.db3` |
+| `figures/` | `Documents/figures/` |
+| `video_demo.mp4` | *(pending — record 60–120 s demo)* |
+| `README.md` | `README.md` (this file) |
+
+---
 
 ## Repository Structure
 
 ```
 TE3001B_TEAM_3/
-├── src/                          # ROS 2 packages
-│   ├── Challenges/               # Course challenges
-│   │   ├── custom_interfaces/    # SetProcessBool.srv definition
-│   │   ├── main_pkg/             # Basic publisher/subscriber (C++)
-│   │   └── motor_control/        # DC motor PID simulation
-│   ├── lite6_move/               # MoveIt Cartesian path planner for Lite6
-│   ├── s0s1_gazebo/              # SO101 gripper MuJoCo simulation + URDF
-│   ├── xarm_perturbations/       # CTC vs PID joint-space control under perturbations
-│   ├── xarm_teleops/             # Master-slave teleoperation with force feedback
-│   ├── uros_ws/                  # Micro-ROS workspace (ESP32 motor control)
-│   └── Retosemana3/              # Week 3 challenge — teleoperation data analysis
-├── MiniReto_PIDMotor/            # PlatformIO firmware — ESP32 motor PWM via micro-ROS
-└── README.md
+├── Documents/
+│   ├── ReporteFinal_Team4.tex   # IEEE LaTeX report (source)
+│   ├── ReporteFinal_Team4.pdf   # Compiled report
+│   ├── gen_figures.py           # Script to regenerate all figures from bag
+│   └── figures/                 # Generated PDF figures (9 files)
+├── src/
+│   ├── xarm_bilateral_teleop/   # Main bilateral teleop package (ROS 2)
+│   │   ├── xarm_bilateral_teleop/
+│   │   │   ├── master_node.py       # Admittance controller (master arm)
+│   │   │   ├── slave_node.py        # Impedance follower (slave arm)
+│   │   │   ├── force_estimator.py   # Sensorless force estimation (DLS + LPF)
+│   │   │   ├── force_sensor_node.py # ROS 2 node wrapping ForceEstimator
+│   │   │   ├── kinematics.py        # FK, geometric Jacobian, gravity torques
+│   │   │   └── keyboard_teleop.py   # Manual keyboard override
+│   │   ├── launch/
+│   │   │   ├── bilateral_teleop.launch.py        # Real robots (both arms)
+│   │   │   ├── bilateral_teleop_isaac.launch.py  # Isaac Sim backend
+│   │   │   ├── master.launch.py                  # Master arm only
+│   │   │   └── slave.launch.py                   # Slave arm only
+│   │   └── config/
+│   │       └── teleop_params.yaml   # All tuning parameters
+│   ├── xarm_teleops/            # Legacy UDP teleoperation (reference)
+│   │   └── src/
+│   │       ├── master_control.py
+│   │       ├── slave_control.py
+│   │       ├── force_estimator.py
+│   │       └── net_test.py
+│   ├── xarm_perturbations/      # CTC vs PID joint-space control
+│   ├── lite6_move/              # MoveIt Cartesian path planner
+│   ├── s0s1_gazebo/             # SO101 gripper MuJoCo simulation
+│   └── Challenges/              # Course challenges (interfaces, motor PID)
+├── microros_force_sensor/       # ESP32 firmware — master force sensor
+│   ├── src/main.cpp             #   HC-SR04 + joystick → /teleop/operator_force_direct
+│   └── include/config.h         #   k=1000 N/m, ±3 N, port 8888
+├── microros_slave_sensor/       # ESP32 firmware — slave force sensor
+│   ├── src/main.cpp             #   HC-SR04 + joystick → /teleop/slave_force_direct
+│   └── include/config.h         #   k=1500 N/m, ±6 N, port 8889
+├── papubag/
+│   └── papubag_0.db3            # ROS 2 bag — recorded experiment (37.6 s)
+└── MiniReto_PIDMotor/           # PlatformIO firmware — ESP32 motor PWM
 ```
 
-## Packages
+---
 
-### Challenges (`src/Challenges/`)
+## Reproducing the Experiments
 
-| Package | Type | Description |
-|---------|------|-------------|
-| `custom_interfaces` | ament_cmake | `SetProcessBool.srv` service definition |
-| `main_pkg` | ament_cmake | `sender` and `process` nodes — basic ROS 2 messaging |
-| `motor_control` | ament_python | DC motor simulation with PID controller (`dc_motor`, `set_point`, `controller`) |
+### Prerequisites
 
-### xArm Lite 6 Packages
+- ROS 2 Humble + MoveIt 2 + MoveIt Servo
+- `xarm_ros2` package (UFACTORY): `https://github.com/xArm-Developer/xarm_ros2`
+- Python 3.10, packages: `numpy`, `scipy`
+- Two xArm Lite 6 robots on LAN (or Isaac Sim)
+- Two ESP32 boards flashed with the firmware below
 
-| Package | Type | Description |
-|---------|------|-------------|
-| `lite6_move` | ament_cmake | MoveIt Cartesian path planning for Lite 6 |
-| `xarm_perturbations` | ament_python | Joint-space CTC vs PID controllers with perturbation analysis |
-| `xarm_teleops` | ament_python | Two-computer master-slave teleoperation with haptic force feedback |
-
-### Simulation
-
-| Package | Type | Description |
-|---------|------|-------------|
-| `s0s1_gazebo` | ament_cmake | SO101 gripper MuJoCo simulation with ROS 2 bridge and PID control |
-
-### Embedded / Micro-ROS
-
-| Package | Type | Description |
-|---------|------|-------------|
-| `uros_ws` | micro-ROS | ESP32 motor control via micro-ROS agent |
-| `MiniReto_PIDMotor` | PlatformIO | ESP32 firmware for PWM motor control (micro-ROS subscriber) |
-
-## Build
-
-ROS 2 runs inside Docker. Build inside the container:
+### 1. Build the workspace
 
 ```bash
-cd ~/dev_ws
-colcon build
+cd ~/sch_ws/TE3001B_TEAM_3
+colcon build --packages-select xarm_bilateral_teleop
 source install/setup.bash
 ```
 
-For PlatformIO firmware (`MiniReto_PIDMotor/`):
+### 2. Flash the ESP32 force sensors (PlatformIO)
 
 ```bash
-pio run
+# Master sensor (port 8888, k=1000 N/m)
+cd microros_force_sensor
+pio run --target upload
+
+# Slave sensor (port 8889, k=1500 N/m)
+cd ../microros_slave_sensor
 pio run --target upload
 ```
 
-## xarm_perturbationsV2 — CTC vs PID Control Challenge
+Both ESP32s connect to WiFi SSID `Team4` and publish `WrenchStamped` at 50 Hz
+to a micro-ROS agent running on `192.168.1.53`.
 
-Joint-space control comparison on xArm Lite 6 with and without external perturbations.
-
-**Pipeline:**
-```
-IK Reference Generator → Joint-Space Controller → Perturbation Injector → MoveIt Servo → xArm Lite 6
-```
-
-**Nodes:**
-- `ik_reference_generator` — IK-based joint reference trajectories (q, dq, ddq)
-- `joint_space_controller` — PID or CTC (Computed Torque Control) in joint space
-- `perturbation_injector` — Sine or Gaussian disturbance injection
-
-**Controllers:**
-- **PID:** `tau = -(Kp*e + Kd*de + Ki*int_e)` with anti-windup
-- **CTC:** `tau = M(q)*v + G(q) + F(dq)` with feedback linearization
-
-**Trials:**
-
-| Trial | Controller | Perturbation |
-|-------|------------|--------------|
-| `trial_ctc_nopert` | CTC | None |
-| `trial_pdpid_nopert` | PID | None |
-| `trial_ctc_pert` | CTC | Gaussian (x-axis, sigma=0.01 m/s) |
-| `trial_pdpid_pert` | PID | Gaussian (x-axis, sigma=0.01 m/s) |
-
-**Usage:**
+### 3. Start micro-ROS agents
 
 ```bash
-# Terminal 0: Launch MoveIt Servo
-ros2 launch xarm_moveit_servo lite6_moveit_servo_realmove.launch.py robot_ip:=192.168.1.175
-
-# Terminal 1: Reference generator
-ros2 run xarm_perturbations ik_reference_generator --ros-args \
-  -p wz:=2.5 -p lam:=0.015 -p k_task:=14.0 -p k_null:=1.5 \
-  -p dwell_sec:=1.5 -p segment_sec:=2.0 -p control_rate_hz:=200.0
-
-# Terminal 2: Controller (change controller_type and trial_name per trial)
-ros2 run xarm_perturbations joint_space_controller --ros-args \
-  -p controller_type:=ctc \
-  -p output_topic:=/servo_server/delta_twist_cmds \
-  -p trial_name:=trial_ctc_nopert
-
-# Terminal 3 (perturbation trials only):
-ros2 run xarm_perturbations perturbation_injector --ros-args \
-  -p input_topic:=/controller_output \
-  -p output_topic:=/servo_server/delta_twist_cmds \
-  -p enabled:=true -p mode:=gaussian \
-  -p gauss_std_linear:=0.01 -p gauss_axis:=x
+ros2 run micro_ros_agent micro_ros_agent udp4 -p 8888 &   # master sensor
+ros2 run micro_ros_agent micro_ros_agent udp4 -p 8889 &   # slave sensor
 ```
 
-Results and analysis: `src/xarm_perturbations/analysis/`
+### 4. Launch bilateral teleoperation
 
-## xarm_teleops — Teleoperation with Force Feedback
-
-Master-slave teleoperation between two xArm Lite 6 robots over UDP.
-
-```
-PC Master                           PC Slave
-┌──────────────────┐   UDP 5005   ┌──────────────────┐
-│ master_control   │ ───────────► │ slave_control    │
-│                  │ ◄──────────  │                  │
-│  q_master →      │   UDP 5006  │  → ForceEstimator│
-│  ← F_ext, tau    │  (F_ext, τ) │  ← tau_meas      │
-└────────┬─────────┘             └────────┬─────────┘
-         │ Ethernet                       │ Ethernet
-   xArm Lite 6 (Master)           xArm Lite 6 (Slave)
+**With real robots:**
+```bash
+ros2 launch xarm_bilateral_teleop bilateral_teleop.launch.py \
+    master_ip:=192.168.1.175 slave_ip:=192.168.1.226
 ```
 
-**Force estimation:** `F_ext = (J^T)^+ * (tau_meas - tau_gravity)`
+**With Isaac Sim (no physical robots):**
+```bash
+ros2 launch xarm_bilateral_teleop bilateral_teleop_isaac.launch.py
+```
+
+### 5. Tune parameters at runtime
+
+All gains and thresholds are in `src/xarm_bilateral_teleop/config/teleop_params.yaml`:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `Md` | `[2, 2, 2]` kg | Admittance virtual mass |
+| `Bd` | `[10, 10, 10]` N·s/m | Admittance damping |
+| `alpha` | `0.3` | Slave-to-master force reflection ratio |
+| `Kp` | `[5, 5, 5]` 1/s | Slave impedance proportional gain |
+| `max_cart_speed` | `0.10` m/s | Cartesian velocity clamp |
+| `singularity_threshold` | `50.0` | κ(J) limit → halt motion |
+| `force_deadband_n` | `1.5` N | Admittance deadband |
+
+ESP32 sensor parameters (edit `include/config.h` and reflash):
+
+| Parameter | Master | Slave |
+|-----------|--------|-------|
+| `SPRING_K` | 1000 N/m | 1500 N/m |
+| `JOY_MAX_FORCE_N` | 3.0 N | 6.0 N |
+| `AGENT_PORT` | 8888 | 8889 |
+
+### 6. Regenerate report figures from bag
 
 ```bash
-# Slave PC (first):
-python3 src/slave_control.py
-
-# Master PC:
-python3 src/master_control.py
+source /opt/ros/humble/setup.bash
+python3 Documents/gen_figures.py
+# Figures saved to Documents/figures/
 ```
+
+### 7. Network latency test
+
+```bash
+python3 src/xarm_teleops/src/net_test.py
+```
+
+---
+
+## Key Topics
+
+| Topic | Type | Rate | Description |
+|-------|------|------|-------------|
+| `/master/joint_states` | JointState | 250 Hz | Master arm state |
+| `/slave/joint_states` | JointState | 250 Hz | Slave arm state |
+| `/teleop/operator_force_direct` | WrenchStamped | 50 Hz | ESP32 master sensor |
+| `/teleop/slave_force_direct` | WrenchStamped | 50 Hz | ESP32 slave sensor |
+| `/teleop/master_pose` | PoseStamped | 50 Hz | Master EE pose (FK) |
+| `/teleop/master_velocity` | TwistStamped | 50 Hz | Master EE velocity |
+| `/master/servo_server/delta_twist_cmds` | TwistStamped | 50 Hz | Master MoveIt Servo input |
+| `/slave/servo_server/delta_twist_cmds` | TwistStamped | 50 Hz | Slave MoveIt Servo input |
+
+---
+
+## Experimental Results (bag: `papubag/papubag_0.db3`)
+
+| Metric | Value |
+|--------|-------|
+| Duration | 37.6 s |
+| Joint tracking RMS (mean) | 0.702° |
+| Joint tracking max (mean) | 2.522° |
+| Force events detected (‖F‖ > 2 N) | 7 |
+| Max operator force Fz | 38.5 N |
+| `/master/joint_states` inter-arrival | μ=7.12 ms, P99=42.70 ms |
+| `/slave/joint_states` inter-arrival | μ=7.05 ms, P99=39.66 ms |
+
+---
 
 ## Safety
 
-- Torque saturation: +/-10 Nm per joint
-- Cartesian velocity saturation: 0.10 m/s per axis
-- Emergency stop on joint error > 0.8 rad (8 s grace period at startup)
+- Cartesian velocity clamp: ±0.10 m/s per axis
+- Force clamping before admittance: ±20 N
+- Singularity detection: κ(J) > 50 → publish zero twist
+- Slave timeout: master pose stale > 0.5 s → publish zero twist
+
+---
 
 ## License
 
