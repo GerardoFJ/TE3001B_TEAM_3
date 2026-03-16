@@ -23,28 +23,27 @@ Architecture:
 
   This launch (ROS2 side)
     ├── MoveIt Servo (per arm) → converts twist to joint trajectory
-    ├── Force sensor nodes (per arm) → virtual F/T from joint efforts
     ├── Master admittance controller
     └── Slave impedance tracker
+
+  Note: Force sensing is handled inside Isaac Sim (dual_lite6_sim.py).
+  Isaac Sim publishes WrenchStamped to /{arm_ns}/force_sensor/force_estimate
+  and Bool to /{arm_ns}/force_sensor/contact_detected directly.
 """
 import os
 
-import yaml
 from ament_index_python import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
-    DeclareLaunchArgument,
     ExecuteProcess,
-    GroupAction,
     OpaqueFunction,
     RegisterEventHandler,
     TimerAction,
 )
 from launch.event_handlers import OnProcessStart
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import ComposableNodeContainer, Node, PushRosNamespace
+from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
-from launch_ros.substitutions import FindPackageShare
 
 from uf_ros_lib.moveit_configs_builder import MoveItConfigsBuilder
 from uf_ros_lib.uf_robot_utils import load_yaml
@@ -224,28 +223,9 @@ def launch_setup(context, *args, **kwargs):
         ))
 
     # ----------------------------------------------------------------
-    # Force sensor and teleop controller nodes
+    # Teleop controller nodes
+    # (Force sensors are now inside Isaac Sim — no ROS nodes needed)
     # ----------------------------------------------------------------
-
-    # Master force sensor
-    nodes.append(Node(
-        package='xarm_bilateral_teleop',
-        executable='force_sensor',
-        namespace='master',
-        name='force_sensor',
-        output='screen',
-        parameters=[params_file],
-    ))
-
-    # Slave force sensor
-    nodes.append(Node(
-        package='xarm_bilateral_teleop',
-        executable='force_sensor',
-        namespace='slave',
-        name='force_sensor',
-        output='screen',
-        parameters=[params_file],
-    ))
 
     # Master admittance controller
     nodes.append(Node(
